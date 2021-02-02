@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.cloud.bus.event.RemoteApplicationEvent;
+import xyz.nyist.constant.EventType;
 import xyz.nyist.entity.Message;
 
 /**
@@ -19,6 +20,8 @@ import xyz.nyist.entity.Message;
 public class MessageEvent extends RemoteApplicationEvent {
 
     private Message message;
+
+    private EventType eventType;
 
 
     public MessageEvent(Object source, String originService, Message message) {

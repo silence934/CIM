@@ -1,29 +1,28 @@
 package xyz.nyist.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.bus.BusProperties;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import xyz.nyist.event.MessageEvent;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @Author : fucong
  * @Date: 2021-01-30 20:42
  * @Description :
  */
-@RestController
+@Controller
 public class TestController {
 
-    @Autowired
-    private ApplicationContext applicationContext;
-    @Autowired
-    private BusProperties busProperties;
+    @Value("${server.port}")
+    private Integer port;
+    @Value("${server.address}")
+    private String address;
 
-
-    @GetMapping("/test")
-    public void test() {
-        applicationContext.publishEvent(new MessageEvent(this, busProperties.getId(), null));
+    @GetMapping("/index")
+    public String index1(HttpServletRequest request) {
+        request.setAttribute("address", "http://" + address + ":" + (port + 1) + "?mac=" + (port + 1));
+        return "index";
     }
 
 }
