@@ -2,8 +2,13 @@ server:
   address: 10.129.10.78
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: 'http://10.129.10.78:8013/getPublicKey'
   application:
-    name: cim-socket
+    name: cim-getway
   cloud:
     consul:
       host: localhost  #consul的IP（可以改成自己电脑ip）
@@ -13,3 +18,25 @@ spring:
         prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
         healthCheckInterval: 5s     #健康检查频率
         port: ${server.port}        #注册服务所在端口
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 启用服务发现
+          lower-case-service-id: true
+      routes:
+        - id: youlai-auth
+          uri: lb://youlai-auth
+          predicates:
+            - Path=/youlai-auth/**
+          filters:
+            - StripPrefix=1
+        - id: socket
+          uri: lb://cim-socket
+          predicates:
+            - Path=/api-v1/**
+          filters:
+            - StripPrefix=1
+
+white-list:
+  urls:
+    - "/youlai-auth/oauth/token"

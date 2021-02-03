@@ -1,0 +1,21 @@
+server:
+  address: 10.129.10.78
+
+spring:
+  application:
+    name: cim-socket
+  cloud:
+    consul:
+      host: localhost  #consul的IP（可以改成自己电脑ip）
+      port: 8500       #consul启动端口默认8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
+        healthCheckInterval: 5s     #健康检查频率
+        port: ${server.port}        #注册服务所在端口
+  rabbitmq:
+    port: 5672
+    host: 10.129.18.21
+    username: guest
+    password: guest
+    connection-timeout: 15000
