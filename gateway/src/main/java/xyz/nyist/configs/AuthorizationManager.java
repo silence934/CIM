@@ -7,7 +7,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.ReactiveAuthorizationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.server.authorization.AuthorizationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
@@ -23,17 +22,17 @@ import java.util.*;
  * @Date: 2021-02-03 11:03
  * @Description :
  */
-@Component
 @Slf4j
+@Component
 public class AuthorizationManager implements ReactiveAuthorizationManager<AuthorizationContext> {
 
-    //private RedisTemplate redisTemplate;
+
+    private static final PathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
     public Mono<AuthorizationDecision> check(Mono<Authentication> mono, AuthorizationContext authorizationContext) {
         ServerHttpRequest request = authorizationContext.getExchange().getRequest();
         String path = request.getURI().getPath();
-        PathMatcher pathMatcher = new AntPathMatcher();
 
         // 1. 对应跨域的预检请求直接放行
         if (request.getMethod() == HttpMethod.OPTIONS) {
@@ -48,7 +47,6 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
 
         // 3.缓存取资源权限角色关系列表
 
-        //redisTemplate.opsForHash().entries(AuthConstants.RESOURCE_ROLES_KEY);
         Map<Object, Object> resourceRolesMap = new HashMap<>();
         Iterator<Object> iterator = resourceRolesMap.keySet().iterator();
 
@@ -56,24 +54,22 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
         List<String> authorities = new ArrayList<>();
         while (iterator.hasNext()) {
             String pattern = (String) iterator.next();
-            if (pathMatcher.match(pattern, path)) {
+            if (PATH_MATCHER.match(pattern, path)) {
                 authorities.addAll(Convert.toList(String.class, resourceRolesMap.get(pattern)));
             }
         }
-        authorities.add("admin");
+        authorities.add("permission2");
 
-        return mono
-                .filter(Authentication::isAuthenticated)
-                .flatMapIterable(Authentication::getAuthorities)
-                .map(GrantedAuthority::getAuthority)
-                .any(roleId -> {
-                    // 5. roleId是请求用户的角色(格式:ROLE_{roleId})，authorities是请求资源所需要角色的集合
-                    log.info("访问路径：{}", path);
-                    log.info("用户角色roleId：{}", roleId);
-                    log.info("资源需要权限authorities：{}", authorities);
-                    return authorities.contains(roleId);
+
+        return mono.filter(Authentication::isAuthenticated)
+                .map(authentication -> {
+                    log.info("访问路径: {}", path);
+                    log.info("用户权限: {}", authentication.getAuthorities());
+                    log.info("资源需要权限: {}", authorities);
+                    boolean granted = authentication.getAuthorities().stream()
+                            .anyMatch(permission -> authorities.contains(permission.getAuthority()));
+                    return new AuthorizationDecision(granted);
                 })
-                .map(AuthorizationDecision::new)
                 .defaultIfEmpty(new AuthorizationDecision(false));
     }
 }

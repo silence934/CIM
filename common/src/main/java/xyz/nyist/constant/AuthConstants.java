@@ -1,11 +1,17 @@
 package xyz.nyist.constant;
 
+/**
+ * @author fucong
+ */
 public interface AuthConstants {
-    
+
     /**
      * 认证信息Http请求头
      */
     String JWT_TOKEN_HEADER = "Authorization";
+
+
+    String TOKEN_INFO = "TokenInfo";
 
     /**
      * JWT令牌前缀
@@ -51,7 +57,7 @@ public interface AuthConstants {
     /**
      * JWT存储权限前缀
      */
-    String AUTHORITY_PREFIX = "ROLE_";
+    String AUTHORITY_PREFIX = "PERMISSION_";
 
     /**
      * JWT存储权限属性
@@ -59,19 +65,4 @@ public interface AuthConstants {
     String JWT_AUTHORITIES_KEY = "authorities";
 
 
-    /**
-     * 有来商城后台管理客户端ID
-     */
-    String ADMIN_CLIENT_ID = "youlai-admin";
-
-
-    /**
-     * 有来商城微信小程序客户端ID
-     */
-    String WEAPP_CLIENT_ID = "youlai-mall-weapp";
-
-    /**
-     * 后台管理接口路径匹配
-     */
-    String ADMIN_URL_PATTERN = "/youlai-admin/**";
 }

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import xyz.nyist.configs.NettySocketIoConfig;
 import xyz.nyist.constant.EventType;
 import xyz.nyist.entity.Message;
@@ -58,15 +57,6 @@ public class NettySocketEvent {
 
 
     private void send(Message message) {
-        String to = message.getTo();
-
-        List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.get(to);
-        if (!CollectionUtils.isEmpty(clients)) {
-            for (SocketIOClient client : clients) {
-                client.sendEvent(EventType.SOCKET_MESSAGE.value(), message);
-            }
-        }
-
         MessageEvent messageEvent = new MessageEvent(this, busProperties.getId(), message);
         messageEvent.setEventType(EventType.SOCKET_MESSAGE);
         applicationContext.publishEvent(messageEvent);

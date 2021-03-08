@@ -33,6 +33,13 @@
     </label>
 </div>
 
+<div>
+    <p>你的名字</p>
+    <label>
+        <input id="from" type="text"/>
+    </label>
+</div>
+
 
 <br><br>
 
@@ -42,35 +49,11 @@
 </body>
 
 <script type="text/javascript">
+  //document.getElementById('address').innerHTML
 
-  let socket = io.connect(document.getElementById('address').innerHTML);
+
+  let socket;//= io.connect("http://192.168.31.103:8011?mac=" + document.getElementById('from').value);
   let firstconnect = true;
-
-  //监听服务器连接事件
-  socket.on('connect', function () {
-    status_update("连接成功");
-  });
-
-  socket.on('reconnect', function () {
-    status_update("重新连接成功");
-  });
-
-  //监听服务器关闭服务事件
-  socket.on('disconnect', function () {
-    firstconnect = false;
-    status_update("断开连接");
-  });
-
-  socket.on('connect_error', function (error) {
-    console.log(error);
-  });
-
-  //监听服务器端发送消息事件
-  socket.on('messageevent', function (data) {
-    message(data)
-    //console.log("服务器发送的消息是："+data);
-  });
-
 
   function message(data) {
     document.getElementById('message').innerHTML = document.getElementById('message').innerHTML
@@ -121,7 +104,7 @@
   function send() {
     socket.emit('sendEvent', {
       content: document.getElementById('input').value,
-      from: document.getElementById('address').innerHTML.split("?mac=")[1],
+      from: document.getElementById('from').value,
       to: document.getElementById('to').value
     });
     document.getElementById('input').value = ''
@@ -134,7 +117,34 @@
   }
 
   function connect() {
-    socket.connect();
+    socket = io.connect("http://192.168.31.103:8011?mac=" + document.getElementById('from').value, {
+      transports: ['websocket']
+    });
+
+    //监听服务器连接事件
+    socket.on('connect', function () {
+      status_update("连接成功");
+    });
+
+    socket.on('reconnect', function () {
+      status_update("重新连接成功");
+    });
+
+    //监听服务器关闭服务事件
+    socket.on('disconnect', function () {
+      firstconnect = false;
+      status_update("断开连接");
+    });
+
+    socket.on('connect_error', function (error) {
+      console.log(error);
+    });
+
+    //监听服务器端发送消息事件
+    socket.on('messageevent', function (data) {
+      message(data)
+      //console.log("服务器发送的消息是："+data);
+    });
   }
 
 </script>

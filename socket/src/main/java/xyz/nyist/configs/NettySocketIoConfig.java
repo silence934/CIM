@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @org.springframework.context.annotation.Configuration
 public class NettySocketIoConfig implements CommandLineRunner {
 
-    @Value("${server.port}")
-    private String port;
+    @Value("${spring.cloud.consul.discovery.port}")
+    private Integer port;
 
     @Value("${server.address}")
     private String address;
@@ -45,7 +45,7 @@ public class NettySocketIoConfig implements CommandLineRunner {
         //身份验证
         config.setAuthorizationListener(handshakeData -> true);
         config.setHostname(address);
-        config.setPort(Integer.parseInt(port) + 1);
+        config.setPort(port);
         return new SocketIOServer(config);
     }
 

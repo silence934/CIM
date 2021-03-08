@@ -1,5 +1,5 @@
 server:
-  address: 10.129.10.78
+  address: 192.168.31.103
 
 spring:
   application:
@@ -12,10 +12,11 @@ spring:
         service-name: ${spring.application.name}
         prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
         healthCheckInterval: 5s     #健康检查频率
-        port: ${server.port}        #注册服务所在端口
+        port: 8006        #注册服务所在端口
+        health-check-url: http://${server.address}:${server.port}/actuator/health
   rabbitmq:
     port: 5672
-    host: 10.129.18.21
+    host: www.nyist.xyz
     username: guest
     password: guest
     connection-timeout: 15000

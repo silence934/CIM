@@ -1,12 +1,12 @@
 server:
-  address: 10.129.10.78
+  address: 192.168.31.103
 
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: 'http://10.129.10.78:8013/getPublicKey'
+          jwk-set-uri: 'http://${server.address}:8013/getPublicKey'
   application:
     name: cim-getway
   cloud:
@@ -24,19 +24,29 @@ spring:
           enabled: true # 启用服务发现
           lower-case-service-id: true
       routes:
-        - id: youlai-auth
-          uri: lb://youlai-auth
+        - id: author
+          uri: lb://cim-authorization
           predicates:
-            - Path=/youlai-auth/**
+            - Path=/api-v1/oauth/token
           filters:
             - StripPrefix=1
-        - id: socket
-          uri: lb://cim-socket
+
+        - id: api
+          uri: lb://cim-api
           predicates:
             - Path=/api-v1/**
           filters:
             - StripPrefix=1
 
+        - id: socket
+          uri: lb://cim-socket
+          predicates:
+            - Path=/socket.io/**
+          filters:
+            - StripPrefix=0
+
 white-list:
   urls:
-    - "/youlai-auth/oauth/token"
+    - "/api-v1/oauth/token"
+    - "/actuator/health"
+    - "/socket.io"

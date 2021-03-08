@@ -24,7 +24,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
                 .and()
                 .authorizeRequests()
-                .antMatchers("/getPublicKey")
+                .antMatchers("/getPublicKey", "/oauth/token")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
