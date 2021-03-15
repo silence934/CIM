@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.cloud.bus.event.RemoteApplicationEvent;
-import xyz.nyist.constant.EventType;
-import xyz.nyist.entity.Message;
+import xyz.nyist.constant.EventName;
+import xyz.nyist.entity.MessageEntity;
 
 /**
  * @Author : fucong
@@ -19,12 +19,12 @@ import xyz.nyist.entity.Message;
 @EqualsAndHashCode(callSuper = true)
 public class MessageEvent extends RemoteApplicationEvent {
 
-    private Message message;
+    private MessageEntity message;
 
-    private EventType eventType;
+    private EventName eventName;
 
 
-    public MessageEvent(Object source, String originService, Message message) {
+    public MessageEvent(Object source, String originService, MessageEntity message) {
         super(source, originService, "*");
         this.message = message;
     }

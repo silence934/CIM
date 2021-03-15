@@ -28,7 +28,7 @@ public class NettySocketIoConfig implements CommandLineRunner {
     @Value("${server.address}")
     private String address;
 
-    public static final Map<String, List<SocketIOClient>> CLIENT_MAP = new ConcurrentHashMap<>();
+    public static final Map<Integer, List<SocketIOClient>> CLIENT_MAP = new ConcurrentHashMap<>();
 
 
     /**

@@ -22,6 +22,10 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 public abstract class BaseEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = UserEntity.class)
     @JoinColumn(name = "created_by")

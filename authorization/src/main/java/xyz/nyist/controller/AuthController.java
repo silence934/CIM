@@ -29,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/token")
     public Result<Oauth2Token> postAccessToken(Principal principal, @RequestParam Map<String, String> parameters) throws Exception {
-
+       
         OAuth2AccessToken oAuth2AccessToken = tokenEndpoint.postAccessToken(principal, parameters).getBody();
 
         assert oAuth2AccessToken != null;

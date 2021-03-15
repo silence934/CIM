@@ -5,16 +5,18 @@ package xyz.nyist.constant;
  * @Date: 2021-02-02 13:31
  * @Description :
  */
-public enum EventType {
+public enum EventName {
 
     /**
      * socket 消息事件
      */
-    SOCKET_MESSAGE("messageevent");
+    SOCKET_MESSAGE("receiveEvent"),
+
+    GET_CHAT("getChat");
 
     private final String value;
 
-    EventType(String value) {this.value = value;}
+    EventName(String value) {this.value = value;}
 
     public String value() {
         return value;

@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import xyz.nyist.configs.NettySocketIoConfig;
-import xyz.nyist.entity.Message;
+import xyz.nyist.entity.MessageEntity;
 
 import java.util.List;
 
@@ -23,13 +23,13 @@ public class MessageEventListener implements ApplicationListener<MessageEvent> {
     @Override
     public void onApplicationEvent(MessageEvent event) {
         log.info("收到消息: " + event.getMessage());
-        Message message = event.getMessage();
-        String to = message.getTo();
+        MessageEntity message = event.getMessage();
+        Integer to = message.getTo();
         List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.get(to);
 
         if (!CollectionUtils.isEmpty(clients)) {
             for (SocketIOClient client : clients) {
-                client.sendEvent(event.getEventType().value(), message);
+                client.sendEvent(event.getEventName().value(), message);
             }
         }
     }

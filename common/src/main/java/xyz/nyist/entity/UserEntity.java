@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"roles"}, callSuper = false)
-@ToString(exclude = {"roles"})
+@EqualsAndHashCode(exclude = {"roles", "groups"}, callSuper = false)
+@ToString(exclude = {"roles", "groups"})
 @Table(name = "user", uniqueConstraints = @UniqueConstraint(columnNames = {"username"}))
 public class UserEntity extends BaseEntity implements UserDetails {
 
@@ -37,6 +37,21 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "nickname")
+    private String nickname;
+
+    @Column(name = "avatar")
+    private String avatar;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "mail")
+    private String mail;
+
+    @Column(name = "sex")
+    private String sex;
+
     @Column(name = "enabled", columnDefinition = "TINYINT(1) default 1", nullable = false)
     private boolean enabled;
 
@@ -49,6 +64,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Builder.Default
     private Set<RoleEntity> roles = new HashSet<>();
 
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", targetEntity = GroupEntity.class, cascade = CascadeType.ALL)
+    private Set<GroupEntity> groups = new HashSet<>(0);
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -72,5 +90,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
+    }
+
+
+    public String getAvatar() {
+        return avatar == null ? username : avatar;
     }
 }

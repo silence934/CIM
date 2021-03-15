@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import xyz.nyist.entity.UserEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -23,4 +24,13 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
      */
     Optional<UserEntity> findByUsername(String username);
 
+
+    /**
+     * 根据username或者nickname查询
+     *
+     * @param username username
+     * @param nickname nickname
+     * @return List<UserEntity>
+     */
+    List<UserEntity> findByUsernameOrNickname(String username, String nickname);
 }

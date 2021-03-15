@@ -10,12 +10,16 @@ import org.springframework.cloud.bus.BusProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import xyz.nyist.configs.NettySocketIoConfig;
-import xyz.nyist.constant.EventType;
-import xyz.nyist.entity.Message;
+import xyz.nyist.constant.EventName;
+import xyz.nyist.constant.MessageType;
+import xyz.nyist.entity.MessageEntity;
 import xyz.nyist.event.MessageEvent;
+import xyz.nyist.service.MessageService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author : silence
@@ -30,35 +34,60 @@ public class NettySocketEvent {
     private ApplicationContext applicationContext;
     @Autowired
     private BusProperties busProperties;
+    @Autowired
+    private MessageService messageService;
 
     @OnConnect
     public void onConnect(SocketIOClient client) {
-        String mac = client.getHandshakeData().getSingleUrlParam("mac");
-
-        List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.computeIfAbsent(mac, k -> new ArrayList<>());
-        clients.add(client);
-
-        client.sendEvent("messageevent", "嗨," + mac + " 你好! 咱们已建立连接");
-        log.info("客户端:" + client.getSessionId() + "已连接,mac=" + mac);
+        log.info("客户端:" + client.getSessionId() + "已连接");
     }
 
     @OnDisconnect
     public void onDisconnect(SocketIOClient client) {
-        String mac = client.getHandshakeData().getSingleUrlParam("mac");
-        List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.get(mac);
-        clients.remove(client);
+        Collection<List<SocketIOClient>> col = NettySocketIoConfig.CLIENT_MAP.values();
+        for (List<SocketIOClient> sockets : col) {
+            while (sockets.contains(client)) {
+                sockets.remove(client);
+            }
+        }
         log.info("客户端:" + client.getSessionId() + "断开连接");
     }
 
-    @OnEvent(value = "sendEvent")
-    public void receiveMessage(Message message) {
-        send(message);
+    @OnEvent(value = "loginEvent")
+    public void loginEvent(SocketIOClient client, MessageEntity message) {
+        if (message.getType() != MessageType.LOGIN) {
+            return;
+        }
+        List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP
+                .computeIfAbsent(message.getFrom(), k -> new ArrayList<>());
+        clients.add(client);
+    }
+
+    @OnEvent(value = "logoutEvent")
+    public void logoutEvent(SocketIOClient client, MessageEntity message) {
+        if (message.getType() != MessageType.LOGOUT) {
+            return;
+        }
+        List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.get(message.getFrom());
+        clients.remove(client);
+        log.info("用户(id):" + message.getFrom() + "下线");
     }
 
 
-    private void send(Message message) {
+    @OnEvent(value = "sendEvent")
+    public void receiveMessage(MessageEntity message) {
+        messageService.create(message);
+        send(message);
+    }
+
+    @OnEvent(value = "selectChat")
+    public void selectChat(SocketIOClient client, Map<String, Integer> map) {
+        client.sendEvent(EventName.GET_CHAT.value(), messageService.getMessageByPage(map));
+    }
+
+    private void send(MessageEntity message) {
         MessageEvent messageEvent = new MessageEvent(this, busProperties.getId(), message);
-        messageEvent.setEventType(EventType.SOCKET_MESSAGE);
+        messageEvent.setEventName(EventName.SOCKET_MESSAGE);
         applicationContext.publishEvent(messageEvent);
     }
 

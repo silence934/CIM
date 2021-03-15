@@ -30,6 +30,12 @@ spring:
             - Path=/api-v1/oauth/token
           filters:
             - StripPrefix=1
+        - id: file
+          uri: lb://cim-file-server
+          predicates:
+            - Path=/api-v1/artifact/**
+          filters:
+            - StripPrefix=2
 
         - id: api
           uri: lb://cim-api
@@ -41,7 +47,7 @@ spring:
         - id: socket
           uri: lb://cim-socket
           predicates:
-            - Path=/socket.io/**
+            - Path=/socket.io/**,
           filters:
             - StripPrefix=0
 
@@ -50,3 +56,4 @@ white-list:
     - "/api-v1/oauth/token"
     - "/actuator/health"
     - "/socket.io"
+    - "/api-v1/artifact/**"

@@ -3,23 +3,15 @@ server:
 
 spring:
   application:
-    name: cim-socket
-  cloud:
-    consul:
-      host: localhost  #consul的IP（可以改成自己电脑ip）
-      port: 8500       #consul启动端口默认8500
-      discovery:
-        service-name: ${spring.application.name}
-        prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
-        healthCheckInterval: 5s     #健康检查频率
-        port: 8006        #注册服务所在端口
-        health-check-url: http://${server.address}:${server.port}/actuator/health
-  rabbitmq:
-    port: 5672
-    host: www.nyist.xyz
-    username: guest
-    password: guest
-    connection-timeout: 15000
+    name: cim-file-server
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+  mvc:
+    static-path-pattern: /**
+  resources:
+    static-locations: static-locations：classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${file-path}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -47,6 +39,9 @@ spring:
         globally_quoted_identifiers: false
         format_sql: true
         enable_lazy_load_no_trans: true
+
+file-path: D:\cim
+
 logging:
   level:
     org.hibernate.type.descriptor.sql.BasicBinder: trace

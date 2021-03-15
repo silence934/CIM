@@ -9,40 +9,30 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <name>socket</name>
-    <artifactId>socket</artifactId>
+    <name>file-server</name>
+    <artifactId>file-server</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>xyz.nyist</groupId>
-            <artifactId>service</artifactId>
+            <artifactId>common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>xyz.nyist</groupId>
+            <artifactId>dao</artifactId>
+        </dependency>
+
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bus-amqp</artifactId>
-        </dependency>
-
-        <!--websocket-->
-        <dependency>
-            <groupId>com.corundumstudio.socketio</groupId>
-            <artifactId>netty-socketio</artifactId>
-        </dependency>
     </dependencies>
 
 
