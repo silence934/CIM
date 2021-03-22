@@ -29,7 +29,7 @@ service.interceptors.response.use(
     }
     if (data.code !== '00000') {
       Message({
-        message: data.message || '网络异常',
+        message: data.msg || '网络异常',
         type: 'error',
         duration: 5 * 1000
       })

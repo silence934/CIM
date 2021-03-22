@@ -4,8 +4,8 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author : fucong
@@ -44,7 +44,7 @@ public class PermissionEntity extends BaseEntity implements GrantedAuthority {
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "parentPermission", targetEntity = PermissionEntity.class)
-    private Set<PermissionEntity> subPermissions = new HashSet<>(0);
+    private List<PermissionEntity> subPermissions = new ArrayList<>(0);
 
 
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = RoleEntity.class)
@@ -53,7 +53,7 @@ public class PermissionEntity extends BaseEntity implements GrantedAuthority {
             inverseJoinColumns = {@JoinColumn(name = "role_id", nullable = false)}
     )
     @Builder.Default
-    private Set<RoleEntity> roles = new HashSet<>(0);
+    private List<RoleEntity> roles = new ArrayList<>(0);
 
     @Override
     public String getAuthority() {

@@ -8,7 +8,10 @@
                             {{ group.name }}  [0/{{ group.friends.length }}]
                         </span>
                     </template>
-                    <el-menu-item :key="user.id" @click="handleFriend(user,group.id)" :index="''+user.id" v-for="(user) in group.friends">
+                    <el-menu-item
+                            @contextmenu.prevent.native="openMenu($event,user)"
+                            :key="user.id" @click="handleFriend(user,group.id)"
+                            :index="''+user.id" v-for="(user) in group.friends">
                         <div style="width: 100%;height: 50px;">
                             <div class="avatar_div">
                                 <img class="avatar" :src="user.avatar" alt="">
@@ -77,12 +80,17 @@
                 未选择
             </div>
         </div>
+
+        <ul v-show="menu.visible" :style="{left:menu.left+'px',top:menu.top+'px'}" class="contextmenu">
+            <li @click="deleteFriend">删除该好友</li>
+        </ul>
+
     </div>
 </template>
 
 <script>
 import centerControl from '../../components/CenterControl'
-import {getGroup, updateFriend} from '@/api/user'
+import {deleteFriend, getGroup, updateFriend} from '@/api/user'
 import router from '@/router'
 
 export default {
@@ -116,7 +124,27 @@ export default {
                 sex: '',
                 friendId: ''
             },
-            groupId: ''
+            groupId: '',
+            menu: {
+                visible: false,
+                left: 0,
+                top: 0
+            },
+            rightUser: {}
+        }
+    },
+    computed: {
+        visible() {
+            return this.menu.visible;
+        }
+    },
+    watch: {
+        visible(value) {
+            if (value) {
+                document.body.addEventListener('click', this.closeMenu)
+            } else {
+                document.body.removeEventListener('click', this.closeMenu)
+            }
         }
     },
     methods: {
@@ -146,6 +174,42 @@ export default {
         },
         sendMessage() {
             router.push({path: '/message', query: this.activate})
+        },
+        openMenu(e, user) {
+            this.rightUser = user
+            const menuMinWidth = 105
+            const offsetLeft = this.$el.getBoundingClientRect().left
+            const offsetWidth = this.$el.offsetWidth
+            const maxLeft = offsetWidth - menuMinWidth
+            const left = e.clientX - offsetLeft
+            if (left > maxLeft) {
+                this.menu.left = maxLeft
+            } else {
+                this.menu.left = left
+            }
+            this.menu.top = e.clientY - 60
+            this.menu.visible = true
+        },
+        closeMenu() {
+            this.menu.visible = false
+        },
+        deleteFriend() {
+            this.$confirm('确定删除该好友吗', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                let data = new FormData();
+                data.append("id", this.rightUser.friendId)
+                deleteFriend(data).then(() => {
+                    this.$message({
+                        type: 'success',
+                        message: '操作成功!'
+                    })
+                    this.menu.visible = false
+                    this.getGroup()
+                })
+            })
         }
     },
     mounted() {
@@ -154,9 +218,34 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 
->>> .el-input__inner {
+.contextmenu {
+    margin: 0;
+    background: #fff;
+    z-index: 3000;
+    position: absolute;
+    list-style-type: none;
+    padding: 5px 0;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #333;
+    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
+
+    li {
+        margin: 0;
+        padding: 7px 16px;
+        cursor: pointer;
+
+        & :hover {
+            background: #eee;
+        }
+
+    }
+}
+
+> > > .el-input__inner {
     line-height: 30px;
     height: 30px;
 }

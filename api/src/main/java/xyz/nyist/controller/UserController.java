@@ -3,9 +3,12 @@ package xyz.nyist.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.nyist.component.UserContext;
+import xyz.nyist.entity.CrowdEntity;
 import xyz.nyist.entity.UserEntity;
 import xyz.nyist.result.Result;
+import xyz.nyist.service.CrowdService;
 import xyz.nyist.service.UserService;
+import xyz.nyist.vo.FindFriendUserVO;
 import xyz.nyist.vo.UserVO;
 
 import java.util.List;
@@ -24,6 +27,8 @@ public class UserController {
     private UserContext userContext;
     @Autowired
     private UserService userService;
+    @Autowired
+    private CrowdService crowdService;
 
     @GetMapping("/info")
     public Result<UserVO> info() {
@@ -37,19 +42,32 @@ public class UserController {
 
     @PostMapping("/select/details/list")
     public Result<List<UserVO>> getDetailsList(@RequestBody List<Integer> ids) {
-        return Result.success(userService.getByIds(ids).stream()
+        List<UserVO> list = userService.getByIds(ids).stream()
+                .map(UserVO::forValue).collect(Collectors.toList());
+        list.addAll(crowdService.getByIds(ids).stream()
                 .map(UserVO::forValue).collect(Collectors.toList()));
+        return Result.success(list);
     }
 
     @GetMapping("/getAvatar")
     public Result<String> getAvatar(Integer id) {
-        UserEntity userEntity = userService.getById(id);
-        return Result.success(userEntity.getAvatar());
+        if (id < 10000) {
+            UserEntity userEntity = userService.getById(id);
+            return Result.success(userEntity.getAvatar());
+        } else {
+            CrowdEntity crowd = crowdService.getById(id);
+            return Result.success(crowd.getAvatar());
+        }
     }
 
     @GetMapping("/findUser")
-    public Result<UserVO> findUser(String key) {
-        return Result.success(UserVO.forValue(userService.findByUsernameOrNickname(key)));
+    public Result<FindFriendUserVO> findUser(String key) {
+        UserEntity user = userService.findByUsernameOrNickname(key);
+        FindFriendUserVO findFriendUser = FindFriendUserVO.forValue(user,
+                userContext.getCurrentUser().getGroups().stream()
+                        .flatMap(g -> g.getFriends().stream())
+                        .anyMatch(f -> f.getUserOne().equals(user) || f.getUserTwo().equals(user)));
+        return Result.success(findFriendUser);
     }
 
 }

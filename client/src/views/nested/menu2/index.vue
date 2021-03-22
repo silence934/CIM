@@ -1,13 +1,13 @@
 <template>
-    <div style="padding:30px;">
-        <el-alert :closable="false" title="menu 12"/>
+    <div id="app">
+
     </div>
 </template>
 
-<style lang="scss" scoped>
+<script>
+export default {
+    name: "app",
+};
+</script>
 
-
-> > > .el-alert__content {
-  color: red;
-}
-</style>
+<style></style>

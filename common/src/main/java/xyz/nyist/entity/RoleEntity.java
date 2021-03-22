@@ -3,8 +3,8 @@ package xyz.nyist.entity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author : fucong
@@ -41,7 +41,7 @@ public class RoleEntity extends BaseEntity {
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "parentRole", targetEntity = RoleEntity.class)
-    private Set<RoleEntity> subRoles = new HashSet<>(0);
+    private List<RoleEntity> subRoles = new ArrayList<>(0);
 
 
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = UserEntity.class)
@@ -49,7 +49,7 @@ public class RoleEntity extends BaseEntity {
             @JoinColumn(name = "role_id", nullable = false)}, inverseJoinColumns = {
             @JoinColumn(name = "user_id", nullable = false)})
     @Builder.Default
-    private Set<UserEntity> users = new HashSet<>(0);
+    private List<UserEntity> users = new ArrayList<>(0);
 
 
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = PermissionEntity.class)
@@ -58,5 +58,5 @@ public class RoleEntity extends BaseEntity {
             inverseJoinColumns = {@JoinColumn(name = "permission_id", nullable = false)}
     )
     @Builder.Default
-    private Set<PermissionEntity> permissions = new HashSet<>();
+    private List<PermissionEntity> permissions = new ArrayList<>();
 }

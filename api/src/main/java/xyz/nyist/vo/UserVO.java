@@ -2,6 +2,7 @@ package xyz.nyist.vo;
 
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
+import xyz.nyist.entity.CrowdEntity;
 import xyz.nyist.entity.UserEntity;
 
 import java.util.Optional;
@@ -39,6 +40,14 @@ public class UserVO {
                 .phone(u.getPhone())
                 .mail(u.getMail())
                 .sex(u.getSex())
+                .build()).orElse(null);
+    }
+
+    public static UserVO forValue(CrowdEntity crowd) {
+        return Optional.ofNullable(crowd).map(u -> UserVO.builder()
+                .id(u.getId())
+                .username(u.getName())
+                .avatar(u.getAvatar())
                 .build()).orElse(null);
     }
 }

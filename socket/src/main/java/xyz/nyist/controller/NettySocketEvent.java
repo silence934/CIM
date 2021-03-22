@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import xyz.nyist.configs.NettySocketIoConfig;
 import xyz.nyist.constant.EventName;
 import xyz.nyist.constant.MessageType;
+import xyz.nyist.dto.TagMessageDTO;
 import xyz.nyist.entity.MessageEntity;
 import xyz.nyist.event.MessageEvent;
 import xyz.nyist.service.MessageService;
@@ -78,6 +79,11 @@ public class NettySocketEvent {
     public void receiveMessage(MessageEntity message) {
         messageService.create(message);
         send(message);
+    }
+
+    @OnEvent(value = "tagMessage")
+    public void tagMessage(TagMessageDTO tagMessage) {
+        messageService.tagMessage(tagMessage);
     }
 
     @OnEvent(value = "selectChat")

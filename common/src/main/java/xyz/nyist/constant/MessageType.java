@@ -26,9 +26,18 @@ public enum MessageType {
     IMG("img"),
 
     /**
+     * 视频消息
+     */
+    VIDEO("video"),
+
+    /**
      * 添加好友
      */
-    ADD_FRIEND("add_friend");
+    ADD_FRIEND("add_friend"),
+    /**
+     * 添加群
+     */
+    ADD_CROWD("add_crowd");
 
     private final String value;
 

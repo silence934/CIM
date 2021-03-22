@@ -23,9 +23,8 @@
 
 
         <el-dialog :modal=false :visible.sync="dialogVisible" width="130px">
-            <div class="select" @click="createGroup">新建联系人分组</div>
-            <div class="select">新建群分组</div>
-            <div class="select">新建群</div>
+            <div class="select" @click="createGroup">新建分组</div>
+            <div class="select" @click="createCrowd">新建群</div>
         </el-dialog>
     </div>
 
@@ -34,6 +33,7 @@
 <script>
 import {mapGetters} from "vuex"
 import {addGroup} from "@/api/user"
+import {addCrowd} from "@/api/crowd"
 
 export default {
     name: 'CenterControl',
@@ -60,12 +60,21 @@ export default {
                         this.$message.success("操作成功");
                     })
                 }
-            }).catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: '取消输入'
-                });
-            });
+            })
+        },
+        createCrowd() {
+            this.$prompt('新建群', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+            }).then(({value}) => {
+                if (value) {
+                    let data = new FormData();
+                    data.append("name", value)
+                    addCrowd(data).then(() => {
+                        this.$message.success("操作成功");
+                    })
+                }
+            })
         }
     }
 }

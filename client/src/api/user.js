@@ -85,3 +85,11 @@ export function addFriend(data) {
     data
   })
 }
+
+export function deleteFriend(data) {
+  return request({
+    url: '/api-v1/friendGroup/deleteFriend',
+    method: 'post',
+    data
+  })
+}

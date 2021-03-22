@@ -5,10 +5,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,8 +21,8 @@ import java.util.stream.Stream;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"roles", "groups"}, callSuper = false)
-@ToString(exclude = {"roles", "groups"})
+@EqualsAndHashCode(exclude = {"roles", "groups", "crowds", "crowdUsers"}, callSuper = false)
+@ToString(exclude = {"roles", "groups", "crowds", "crowdUsers"})
 @Table(name = "user", uniqueConstraints = @UniqueConstraint(columnNames = {"username"}))
 public class UserEntity extends BaseEntity implements UserDetails {
 
@@ -62,11 +61,16 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @JoinTable(name = "user_role", joinColumns = {@JoinColumn(name = "user_id", nullable = false)},
             inverseJoinColumns = {@JoinColumn(name = "role_id", nullable = false)})
     @Builder.Default
-    private Set<RoleEntity> roles = new HashSet<>();
+    private List<RoleEntity> roles = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", targetEntity = GroupEntity.class, cascade = CascadeType.ALL)
-    private Set<GroupEntity> groups = new HashSet<>(0);
+    private List<GroupEntity> groups = new ArrayList<>(0);
+
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", targetEntity = CrowdUserEntity.class, cascade = CascadeType.ALL)
+    private List<CrowdUserEntity> crowdUsers = new ArrayList<>(0);
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -95,5 +99,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     public String getAvatar() {
         return avatar == null ? username : avatar;
+    }
+
+
+    public List<CrowdEntity> getCrowds() {
+        return crowdUsers.stream().map(CrowdUserEntity::getCrowd).collect(Collectors.toList());
     }
 }

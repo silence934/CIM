@@ -21,6 +21,12 @@ public class UserContext {
 
     public UserEntity getCurrentUser() {
         CimAuthentication cimAuthentication = (CimAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return userRepository.findById(cimAuthentication.getId()).orElseThrow(() -> new CimException("用户id[%s]不存在", cimAuthentication.getId()));
+        if (cimAuthentication.getUserEntity() != null) {
+            return cimAuthentication.getUserEntity();
+        }
+        UserEntity userEntity = userRepository.findById(cimAuthentication.getId())
+                .orElseThrow(() -> new CimException("用户id[%s]不存在", cimAuthentication.getId()));
+        cimAuthentication.setUserEntity(userEntity);
+        return userEntity;
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import xyz.nyist.constant.MessageType;
 import xyz.nyist.entity.MessageEntity;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,10 +21,26 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Integer>
 
     @Query(value = "select t from MessageEntity t where " +
             "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) " +
-            "and t.type not in :notIn "
-    )
-    Page<MessageEntity> findAllByPage(Integer from, Integer to, Collection<MessageType> notIn, Pageable page);
+            "and t.type not in :notIn ")
+    Page<MessageEntity> findAllByPageAndTypeNotIn(Integer from, Integer to, Collection<MessageType> notIn, Pageable page);
 
-    @Query(value = "select t from MessageEntity t where t.to=:userId and t.status='UN_READ' ")
-    List<MessageEntity> getUnReadMessage(Integer userId);
+    @Query(value = "select t from MessageEntity t where " +
+            "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) " +
+            "and t.type  in :notIn ")
+    Page<MessageEntity> findAllByPageAndTypeIn(Integer from, Integer to, Collection<MessageType> notIn, Pageable page);
+
+
+    @Query(value = "select t from MessageEntity t where " +
+            "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) and t.status='UN_READ' and t.time<=:time ")
+    List<MessageEntity> findAllByTime(Integer from, Integer to, LocalDateTime time);
+
+    @Query(value = "select t from MessageEntity t where t.to=:to and t.type not in :notIn ")
+    Page<MessageEntity> findAllByTo(Integer to, Collection<MessageType> notIn, Pageable page);
+
+
+    @Query(value = "select t from MessageEntity t where t.to=:crowdId and t.time>:time ")
+    List<MessageEntity> getUnReadMessageWithCrowd(Integer crowdId, LocalDateTime time);
+
+    @Query(value = "select t from MessageEntity t where t.to=:userId  and t.status='UN_READ' ")
+    List<MessageEntity> getUnReadMessageWithFriend(Integer userId);
 }

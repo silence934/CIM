@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import xyz.nyist.constant.AuthConstants;
+import xyz.nyist.entity.UserEntity;
 import xyz.nyist.utils.JsonUtil;
 
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public class CimAuthentication implements Authentication {
     private Integer id;
 
     private String userName;
+
+    private UserEntity userEntity;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
