@@ -29,6 +29,10 @@ public enum MessageType {
      * 视频消息
      */
     VIDEO("video"),
+    /**
+     * 语音消息
+     */
+    VOICE("VOICE"),
 
     /**
      * 添加好友

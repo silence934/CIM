@@ -6,8 +6,8 @@ spring:
     name: cim-file-server
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 20MB
+      max-file-size: 30MB
+      max-request-size: 50MB
   mvc:
     static-path-pattern: /**
   resources:

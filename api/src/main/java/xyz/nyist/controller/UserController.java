@@ -3,10 +3,14 @@ package xyz.nyist.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.nyist.component.UserContext;
+import xyz.nyist.dto.RetrievePasswordDTO;
+import xyz.nyist.dto.UserRegisterDTO;
+import xyz.nyist.dto.VerificationCodeDTO;
 import xyz.nyist.entity.CrowdEntity;
 import xyz.nyist.entity.UserEntity;
 import xyz.nyist.result.Result;
 import xyz.nyist.service.CrowdService;
+import xyz.nyist.service.RetrievePasswordService;
 import xyz.nyist.service.UserService;
 import xyz.nyist.vo.FindFriendUserVO;
 import xyz.nyist.vo.UserVO;
@@ -29,6 +33,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private CrowdService crowdService;
+    @Autowired
+    private RetrievePasswordService retrievePasswordService;
 
     @GetMapping("/info")
     public Result<UserVO> info() {
@@ -68,6 +74,25 @@ public class UserController {
                         .flatMap(g -> g.getFriends().stream())
                         .anyMatch(f -> f.getUserOne().equals(user) || f.getUserTwo().equals(user)));
         return Result.success(findFriendUser);
+    }
+
+
+    @PostMapping("/register")
+    public Result<Void> register(@RequestBody UserRegisterDTO userRegister) {
+        userService.registerUser(userRegister);
+        return Result.success();
+    }
+
+    @PostMapping("/getCode")
+    public Result<Void> getCode(@RequestBody VerificationCodeDTO verificationCode) {
+        retrievePasswordService.getCode(verificationCode);
+        return Result.success();
+    }
+
+    @PostMapping("/retrievePassword")
+    public Result<Void> retrievePassword(@RequestBody RetrievePasswordDTO retrievePasswordDTO) {
+        retrievePasswordService.retrievePassword(retrievePasswordDTO);
+        return Result.success();
     }
 
 }

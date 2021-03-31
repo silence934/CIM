@@ -3,6 +3,7 @@ package xyz.nyist.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import xyz.nyist.dto.CrowdUpdateDTO;
 import xyz.nyist.entity.CrowdEntity;
 import xyz.nyist.entity.CrowdUserEntity;
 import xyz.nyist.entity.UserEntity;
@@ -62,8 +63,16 @@ public class CrowdService {
             throw new CimException(ResultCode.SYSTEM_RESOURCE_ERROR, "群主无法退群");
         }
         UserEntity user = userService.getById(userId);
-        
+
         crowdUserRepository.findByCrowdAndUser(crowd, user)
                 .ifPresent(crowdUserEntity -> crowdUserRepository.delete(crowdUserEntity));
+    }
+
+    public void update(CrowdUpdateDTO crowdUpdate) {
+        CrowdEntity entity = getById(crowdUpdate.getId());
+        entity.setName(crowdUpdate.getName());
+        entity.setAnnouncement(crowdUpdate.getAnnouncement());
+        entity.setAvatar(crowdUpdate.getAvatar());
+        crowdRepository.saveAndFlush(entity);
     }
 }

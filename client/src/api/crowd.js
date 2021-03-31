@@ -31,6 +31,14 @@ export function joinCrowd(data) {
   })
 }
 
+export function updateCrowd(data) {
+  return request({
+    url: '/api-v1/crowd/updateCrowd',
+    method: 'post',
+    data
+  })
+}
+
 export function quitCrowd(data) {
   return request({
     url: '/api-v1/crowd/quitCrowd',

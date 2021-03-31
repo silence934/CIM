@@ -70,22 +70,13 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/nested',
-    component: Layout,
-    redirect: '/nested/menu1',
+    path: '/logout',
+    component: () => import('@/views/nested/menu2/index'),
     name: 'Nested',
     meta: {
-      title: 'Nested',
-      icon: 'nested'
+      title: 'logout',
+      icon: 'logout'
     },
-    children: [
-      {
-        path: 'menu2',
-        component: () => import('@/views/nested/menu2/index'),
-        name: 'Menu2',
-        meta: {title: 'menu2', bottom: 0}
-      }
-    ]
   },
 
   // 404 page must be placed at the end !!!

@@ -12,10 +12,10 @@
                     <el-menu-item @click="dialog1=true;user={}" index="1-1">添加联系人</el-menu-item>
                     <el-menu-item @click="dialog3=true" index="1-2">加入群</el-menu-item>
                 </el-submenu>
-                <el-menu-item index="2">
-                    <i class="el-icon-menu"></i>
-                    <span slot="title">查看通知</span>
-                </el-menu-item>
+                <!--                <el-menu-item index="2">
+                                    <i class="el-icon-menu"></i>
+                                    <span slot="title">查看通知</span>
+                                </el-menu-item>-->
 
             </el-menu>
         </centerControl>

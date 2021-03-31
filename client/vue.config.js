@@ -33,19 +33,22 @@ module.exports = {
         }
       },
       ['^/api-v1']: {
-        target: `http://192.168.31.103:8011`,
+        target: `http://native.cn:8011`,
         changeOrigin: true
       },
       ['^/proxy']: {
-        target: `http://192.168.31.103:8011`,
+        target: `http://native.cn:8011`,
         changeOrigin: true,
         pathRewrite: {
           ['^/proxy']: ''
         }
       },
-      ['/files']: {
-        target: `http://10.129.18.21:10003/sfp`,
-        changeOrigin: true
+      ['^/cim-artifact']: {
+        target: `http://native.cn:8011`,
+        changeOrigin: true,
+        pathRewrite: {
+          ['^/cim-artifact']: '/api-v1/artifact/cim-artifact'
+        }
       }
     },
     after: require('./mock/mock-server.js')

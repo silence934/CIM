@@ -18,10 +18,8 @@ import xyz.nyist.repository.CrowdUserRepository;
 import xyz.nyist.repository.MessageRepository;
 import xyz.nyist.result.ResultCode;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author : fucong
@@ -77,7 +75,7 @@ public class MessageService {
             List<MessageEntity> list = messageRepository.getUnReadMessageWithCrowd(c.getCrowd().getId(), c.getUpTo());
             unReadMessage.addAll(list);
         });
-        return unReadMessage;
+        return unReadMessage.stream().sorted(Comparator.comparing(MessageEntity::getTime)).collect(Collectors.toList());
     }
 
     public void update(MessageEntity message) {

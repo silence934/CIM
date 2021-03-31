@@ -54,6 +54,9 @@ spring:
 white-list:
   urls:
     - "/api-v1/oauth/token"
+    - "/api-v1/user/register"
+    - "/api-v1/user/getCode"
+    - "/api-v1/user/retrievePassword"
     - "/actuator/health"
     - "/socket.io"
     - "/api-v1/artifact/**"

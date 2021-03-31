@@ -76,9 +76,7 @@ export default {
             }
             console.log("收到消息", data)
             if (data.type === 'VIDEO') {
-                if (data.data !== 'request') {
-                    return
-                }
+                return
             }
             this.$refs.audio.play()
         }
@@ -91,7 +89,7 @@ export default {
             if (message.type === 'IMG') {
                 return '图片'
             } else if (message.type === 'VIDEO') {
-                return '视屏通话'
+                return '视频通话'
             } else {
                 let a = message.data.replace(/<.*?>/ig, '')
                 return a.substring(0, 7) + (a.length > 7 ? '...' : '')

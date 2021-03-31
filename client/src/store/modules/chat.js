@@ -26,7 +26,8 @@ const mutations = {
     setChat(state.list, state.user_id)
   },
   UPDATE_LIST: (state, item) => {
-    state.list.map(i => i.id === item.id && item.type === i.type ? compare(item, i) : i)
+    state.list.map(i => i.id === item.id && (
+      item.type === i.type || ((item.type !== 'ADD_FRIEND') && i.type !== 'ADD_FRIEND')) ? compare(item, i) : i)
     setChat(state.list, state.user_id)
   },
 }

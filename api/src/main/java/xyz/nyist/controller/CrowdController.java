@@ -2,11 +2,9 @@ package xyz.nyist.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import xyz.nyist.component.UserContext;
+import xyz.nyist.dto.CrowdUpdateDTO;
 import xyz.nyist.entity.CrowdEntity;
 import xyz.nyist.entity.CrowdUserEntity;
 import xyz.nyist.result.Result;
@@ -57,6 +55,13 @@ public class CrowdController {
     @PostMapping("quitCrowd")
     public Result<Void> quitCrowd(Integer crowdId) {
         crowdService.quitCrowd(userContext.getCurrentUser().getId(), crowdId);
+        return Result.success();
+    }
+
+
+    @PostMapping("updateCrowd")
+    public Result<Void> updateCrowd(@RequestBody CrowdUpdateDTO crowdUpdate) {
+        crowdService.update(crowdUpdate);
         return Result.success();
     }
 

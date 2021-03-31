@@ -36,7 +36,7 @@ public class FileController {
 
     @Value("${file-path}")
     private String path;
-    private static final String ARTIFACT_PREFIX = "/api-v1/artifact/";
+    private static final String ARTIFACT_PREFIX = "/cim-artifact";
 
     @Autowired
     private ArtifactService artifactService;
@@ -54,7 +54,7 @@ public class FileController {
             return Result.failed(ResultCode.PARAM_ERROR, "请选择文件");
         }
         String fileName = FileNameUtil.getName(file.getOriginalFilename());
-        String path = (type == null ? "" : ("/" + type)) + "/" + UUID.randomUUID().toString().substring(0, 8) + fileName;
+        String path = ARTIFACT_PREFIX + (type == null ? "" : ("/" + type)) + "/" + UUID.randomUUID().toString().substring(0, 8) + fileName;
         try {
             log.info("上传文件：" + this.path + path);
             FileUtils.copyInputStreamToFile(file.getInputStream(), new File(this.path + path));

@@ -21,8 +21,8 @@ import java.util.stream.Stream;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"roles", "groups", "crowds", "crowdUsers"}, callSuper = false)
-@ToString(exclude = {"roles", "groups", "crowds", "crowdUsers"})
+@EqualsAndHashCode(exclude = {"roles", "groups", "crowdUsers"}, callSuper = false)
+@ToString(exclude = {"roles", "groups", "crowdUsers"})
 @Table(name = "user", uniqueConstraints = @UniqueConstraint(columnNames = {"username"}))
 public class UserEntity extends BaseEntity implements UserDetails {
 
@@ -71,6 +71,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", targetEntity = CrowdUserEntity.class, cascade = CascadeType.ALL)
     private List<CrowdUserEntity> crowdUsers = new ArrayList<>(0);
 
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", targetEntity = UserSecurityEntity.class, cascade = CascadeType.ALL)
+    private List<UserSecurityEntity> securities = new ArrayList<>(0);
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

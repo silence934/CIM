@@ -1,5 +1,7 @@
 <template>
     <div style="height: 100vh;">
+        <audio muted ref="audio" loop="loop" src="@/assets/video.wav"/>
+
         <centerControl style="position: relative;left: 0">
             <el-menu
                     style="width: 100%;height: calc(100% - 48px);background-color: rgb(236,236,236)"
@@ -30,15 +32,20 @@
                         <p v-if="loadingMessage">加载中...</p>
                         <p v-if="noMore">没有更多了</p>
                         <div :class="item.from===userId ?'right':'left'" class="clear item left" v-for="(item,index) in msgList" :key="index">
-                            <span class="time">{{ item.time }}</span>
-                            <span class="message" v-html="item.data"></span>
+                            <span class="time" v-if="item.showTime">
+                                {{ item.time }}
+                            </span>
+                            <span v-if="item.type==='VOICE'" class="message">
+                                 <audio-player :src="item.data"/>
+                            </span>
+                            <span v-else class="message" v-html="item.data"></span>
                             <el-image class="headImg" :src="item.from===userId ?avatar:nowActive.avatar"/>
-                            <div class="addFriend" v-if="item.to===userId&&item.type==='ADD_FRIEND'&&item.status==='UN_READ'">
+                            <div class="addFriend" v-if="item.to===userId && item.type==='ADD_FRIEND' && (item.status!=='ACCEPT'||item.status!=='REJECT')">
                                 <el-button @click="friend={};dialog=true;message=item" size="mini" type="primary">接受</el-button>
                                 <el-button @click="message=item;addFriend(false)" size="mini" type="danger">拒绝</el-button>
                             </div>
                             <div class="addFriend" v-else-if="item.type==='ADD_FRIEND'">
-                                {{ item.status === 'ACCEPT' ? '已接受' : '已拒绝' }}
+                                {{ item.status === 'ACCEPT' ? '已接受' : item.status === 'REJECT' ? '已拒绝' : '' }}
                             </div>
                         </div>
                     </div>
@@ -57,18 +64,20 @@
                     ref="myQuillEditor"
                     :options="editorOption"/>
             <div v-if="nowActive.id<10000">
-                <button type="button" class="ql-underline video" @click="video">
+                <button type="button" class="ql-underline video" @click="isVideo=true;video()">
                     <i class="el-icon-video-camera "></i>
                 </button>
-                <button type="button" class="ql-underline video" style="left: 375px">
+                <button type="button" class="ql-underline video" @click="voiceShow=true;" style="left: 375px">
                     <i class="el-icon-microphone"></i>
                 </button>
-                <button type="button" class="ql-underline video" style="left: 405px">
-                    <i class="el-icon-phone"></i>
-                </button>
+                <Voice v-if="voiceShow" class="voice" :nowActive="nowActive"
+                       @close="voiceShow=false"
+                       @sendVideoInfo="sendVideoInfo"/>
+                <!--                <button type="button" class="ql-underline video" @click="isVideo=false;video()" style="left: 405px">
+                                    <i class="el-icon-phone"></i>
+                                </button>-->
             </div>
-
-            <el-button @click="send" style="float: right" size="mini">发送</el-button>
+            <el-button @click="send()" style="float: right" size="mini">发送</el-button>
         </el-footer>
 
         <el-dialog width="450px" title="添加联系人" :visible.sync="dialog">
@@ -85,7 +94,6 @@
             <br>
             <el-button @click="addFriend(true)" type="primary">确定</el-button>
         </el-dialog>
-
 
         <el-drawer :visible.sync="drawer" direction="rtl">
             <div style="height: 100%;width: 100%;padding: 10px">
@@ -111,16 +119,25 @@
                    :visible.sync="dialogVideo"
                    :close-on-click-modal="false"
                    class="video-dialog"
-                   :before-close="closeVideo"
-        >
-            <div v-if="localstream">
-                <video src="" id="rtcA" controls autoplay></video>
-                <video src="" id="rtcB" controls autoplay></video>
-            </div>
-            <div v-else>
-                <img style="height: 100%;" src="@/assets/wait.jpg" alt=""/>
-            </div>
+                   :before-close="closeVideo">
+            <video-and-voice ref="videoAndVoice"
+                             @closeDialog="dialogVideo=false"
+                             @sendVideoInfo="sendVideoInfo"
+                             :nowActive="nowActive"
+                             :isVideo="isVideo"
+            />
+        </el-dialog>
 
+        <el-dialog :modal="false" width="450px"
+                   :visible.sync="dialogRequest"
+                   :close-on-click-modal="false"
+                   class="video-dialog"
+                   right>
+            <h2 style="color: #909399;text-align: center">视频消息,是否接听?</h2>
+            <span slot="footer" class="dialog-footer">
+                <el-button size="medium" @click="rejectVideo">拒 绝</el-button>
+                <el-button size="medium" type="primary" @click="acceptVideo">接 受</el-button>
+              </span>
         </el-dialog>
     </div>
 </template>
@@ -133,10 +150,12 @@ import {addFriend, getDetails, getGroup, getUsersInfo} from '@/api/user'
 import elementResizeDetector from 'element-resize-detector'
 import centerControl from '../../components/CenterControl'
 import {getCrowdInfo} from "@/api/crowd"
+import VideoAndVoice from "@/views/message/VideoAndVoice"
+import Voice from "@/views/message/Voice"
 
 export default {
     name: 'index',
-    components: {quillRedefine, centerControl},
+    components: {Voice, VideoAndVoice, quillRedefine, centerControl},
     sockets: {
         getChat(messageList) {
             messageList = messageList.content.reverse()
@@ -147,6 +166,10 @@ export default {
                     this.noMore = true
                     this.nowActive.time = moment().format('YYYY-MM-DD HH:mm:ss')
                 } else {
+                    messageList.forEach((item, index) => {
+                        item.showTime = !(index > 0 &&
+                                moment(item.time).diff(moment(messageList[index - 1].time), 'minutes') < 1)
+                    })
                     this.msgList.unshift(...messageList)
                     this.$nextTick(() => {
                         this.scrollTop = document.getElementsByClassName('happy-scroll-content')[0].scrollHeight
@@ -154,6 +177,7 @@ export default {
                     this.nowActive.badge = 0
                     this.nowActive.msg = this.messageSwitch(messageList[messageList.length - 1])
                     this.nowActive.time = messageList[messageList.length - 1].time
+                    this.nowActive.type = messageList[messageList.length - 1].type
                 }
             } else {
                 setTimeout(() => {
@@ -171,70 +195,50 @@ export default {
             this.$store.dispatch('chat/updateList', this.nowActive)
             this.loading = false
         },
-        async receiveEvent(message) {
-            let newChat;
-            if (message.to === this.userId) {
-                newChat = {id: message.from, type: message.type, time: message.time, msg: this.messageSwitch(message)}
-            } else {
-                newChat = {id: message.to, type: message.type, time: message.time, msg: this.messageSwitch(message)}
-            }
-            if (message.type === 'VIDEO') {
+        receiveEvent(message) {
+            let newChat = this.messageToChat(message);
+            if (newChat.id === parseInt(this.nowActive.id) && message.type === 'VIDEO') {
                 switch (message.data) {
-                    case 'accept':
-                        // 对方同意之后创建自己的 peer
-                        await this.createMedia();
-                        // 并给对方发送 offer
-                        await this.createOffer();
-                        break;
-                    case 'reject': {
+                    case 'request': {
+                        this.$refs.audio.play()
+                        this.dialogRequest = true
+                        break
+                    }
+                    case 'disconnect': {
+                        this.$refs.videoAndVoice.disconnectVideo()
                         this.dialogVideo = false
+                        break
+                    }
+                    case 'reject': {
+                        clearTimeout(this.videoTimeout)
+                        this.hasAnswer = true
                         this.$message({
                             message: '对方拒绝了你的请求！',
                             type: 'warning'
                         });
-                        this.startTime = ''
+                        this.dialogVideo = false
+                        this.sendVideoInfo('视频通话 已拒绝')
                         break;
                     }
-                    case 'busy': // 正在通话中
-                        this.$message({
-                            message: '对方正在通话中！',
-                            type: 'warning'
-                        });
-                        break;
-                    case 'offer': //offer
-                        await this.onOffer(message);
-                        break;
-                    case 'answer':
-                        await this.onAnswer(message);
-                        break;
-                    case 'ice' :
-                        await this.onIce(message);
-                        break;
-                    case 'request': {
-                        let data
-                        await this.$confirm('视频消息,是否接听?',
-                                {confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'})
-                                .then(async () => {
-                                    this.dialogVideo = true
-                                    // 同意之后创建自己的 peer 等待对方的 offer
-                                    await this.createMedia()
-                                    data = 'accept'
-                                }).catch(() => {
-                                    data = 'reject'
-                                });
-
-                        this.sendMessage('VIDEO', data)
+                    case 'accept': {
+                        clearTimeout(this.videoTimeout)
+                        this.hasAnswer = true
                         break;
                     }
-                    case 'disconnect': {
-                        this.$message.info("对方已挂断")
-                        this.disconnectVideo()
+                    case 'cancel': {
+                        this.$refs.audio.pause()
+                        this.dialogRequest = false
                         break;
                     }
                 }
             } else {
-                if (newChat.id === parseInt(this.nowActive.id) && newChat.type === this.nowActive.type) {
+                if (newChat.id === parseInt(this.nowActive.id) &&
+                        (newChat.type === this.nowActive.type ||
+                                (newChat.type !== 'ADD_FRIEND') && this.nowActive.type !== 'ADD_FRIEND')) {
+                    message.showTime = !moment(message.time)
+                            .diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
                     this.msgList.push(message)
+                    //this.nowActive.type = message.type
                     this.$store.dispatch('chat/updateList', newChat)
                 } else {
                     let chat = this.chatList.filter(i => i.id === newChat.id)
@@ -272,6 +276,7 @@ export default {
             happyScrollElement: {},
             happyScrollContainer: {},
             b: true,
+            dialogVideo: false,
             /*添加好友*/
             dialog: false,
             friend: {
@@ -280,16 +285,6 @@ export default {
             },
             friendData: [],
             message: {},
-            /*视频通话*/
-            offerOption: {
-                offerToReceiveAudio: 1,
-                offerToReceiveVideo: 1
-            },
-            peer: null,
-            PeerConnection: window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection,
-            dialogVideo: false,
-            startTime: '',
-            localstream: '',
             /*群*/
             crowdInfo: {
                 announcement: '',
@@ -308,6 +303,11 @@ export default {
                 }]
             },
             drawer: false,
+            hasAnswer: false,
+            videoTimeout: '',
+            dialogRequest: false,
+            isVideo: true,
+            voiceShow: false
         }
     },
     computed: {
@@ -324,14 +324,22 @@ export default {
                 res.data.forEach(row => {
                     map[row.id] = row
                 })
-                this.chat.forEach(item => {
+                this.chat.forEach((item, index) => {
                     item.avatar = item.type === 'ADD_FRIEND' ? require('@/assets/bell.png') : map[item.id].avatar
                     item.username = map[item.id].username
                     item.nickname = map[item.id].nickname
                 })
                 this.$forceUpdate()
             })
-            return [...this.chat].reverse()
+            return this.chat
+            //return [...this.chat].reverse()
+        }
+    },
+    watch: {
+        hasAnswer(value) {
+            if (value) {
+                this.$refs.audio.pause()
+            }
         }
     },
     methods: {
@@ -357,21 +365,20 @@ export default {
                 this.active(item)
                 this.scrollTop = document.getElementsByClassName('happy-scroll-content')[0].scrollHeight - 1
                 this.pageQuery.page = 1
-                this.pageQuery.type = item.type === 'ADD_FRIEND' ? 1 : 2
                 this.msgList = []
                 this.$socket.emit('selectChat', this.pageQuery)
-                if (item.id > 9999) {
-                    this.getCrowdInfo(item.id)
-                }
             }
             item.badge = 0
             this.$store.dispatch('chat/updateList', item)
+            this.tagMessage();
         },
-        send() {
+        send(type) {
             if (this.input) {
                 this.input = this.input.replace(/<p>/g, '')
                 this.input = this.input.replace(/<\/p>/g, '')
-                let type = this.input.indexOf('<img src=') === -1 ? 'GENERAL' : 'IMG'
+                if (type && typeof type !== "string") {
+                    type = (this.input.indexOf('<img src=') === -1 ? 'GENERAL' : 'IMG')
+                }
                 let time = moment().format('YYYY-MM-DD HH:mm:ss')
 
                 let message = {
@@ -379,11 +386,12 @@ export default {
                     to: parseInt(this.nowActive.id),
                     time: time,
                     data: this.input,
-                    type: type
+                    type: type,
+                    showTime: !moment(time).diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
                 }
                 let switchMessage = this.messageSwitch(message)
 
-                this.$store.dispatch('chat/updateList', {id: message.to, time: message.time, msg: switchMessage})
+                this.$store.dispatch('chat/updateList', {id: message.to, type: type, time: message.time, msg: switchMessage})
                 this.msgList.push(message)
                 this.$socket.emit('sendEvent', message)
                 this.$nextTick(() => {
@@ -403,8 +411,13 @@ export default {
             }
         },
         active(nowActive) {
+            console.log("激活了:", nowActive)
             this.nowActive = nowActive
             this.pageQuery.to = parseInt(nowActive.id)
+            this.pageQuery.type = nowActive.type === 'ADD_FRIEND' ? 1 : 2
+            if (nowActive.id > 9999) {
+                this.getCrowdInfo(nowActive.id)
+            }
         },
         init() {
             this.pageQuery.from = this.userId
@@ -417,7 +430,8 @@ export default {
                         avatar: this.userData.avatar,
                         id: parseInt(this.userData.id),
                         nickname: this.userData.nickname,
-                        remark: this.userData.remark
+                        remark: this.userData.remark,
+                        type: 'GENERAL'
                     }
                     this.$store.dispatch('chat/addList', chatListHasUser)
                 }
@@ -434,10 +448,13 @@ export default {
                 return '图片'
             } else if (message.type === 'VIDEO') {
                 return '视屏通话'
+            } else if (message.type === 'VOICE') {
+                return '语音消息'
             } else {
                 let a = message.data.replace(/<.*?>/ig, '')
                 return a.substring(0, 7) + (a.length > 7 ? '...' : '')
             }
+
         },
         addFriend(accept) {
             let data;
@@ -465,114 +482,74 @@ export default {
         video() {
             this.sendMessage('VIDEO', 'request')
             this.dialogVideo = true
-            this.startTime = new Date()
-        },
-        async createMedia() {
-            this.localstream = true
-            // 保存本地流到全局
-            try {
-                /* this.localstream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-                 document.querySelector('#rtcA').srcObject = this.localstream;*/
-                await navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(success => {
-                    this.localstream = success;
-                    document.querySelector('#rtcB').srcObject = this.localstream;
-                    console.log("视频加载完毕");
-                }).catch((error) => {
-                    alert("访问用户媒体设备失败：" + error.name + error.message);
-                });
-            } catch (e) {
-                console.log('getUserMedia: ', e)
-            }
-            // 获取到媒体流后，调用函数初始化 RTCPeerConnection
-            this.initPeer();
-        },
-        initPeer() {
-            // 创建输出端 PeerConnection
-            let PeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection
-            this.peer = new PeerConnection()
-            this.peer.addStream(this.localstream)
-            // 监听ICE候选信息 如果收集到，就发送给对方
-            this.peer.onicecandidate = (event) => {
-                if (event.candidate) {
-                    this.sendMessage('VIDEO', 'ice', event.candidate)
+            this.hasAnswer = false
+            this.$refs.audio.play()
+            this.videoTimeout = setTimeout(() => {
+                if (!this.hasAnswer) {
+                    this.cancelVideo()
+                    this.$message.warning("对方无应答")
                 }
-            }
-            this.peer.onaddstream = (event) => {
-                // 监听是否有媒体流接入，如果有就赋值给 rtcB 的 src
-                console.log('有数据流');
-                let video = document.querySelector('#rtcA');
-                video.srcObject = event.stream;
-            }
-        },
-        async createOffer() {
-            try {
-                // 创建offer
-                let offer = await this.peer.createOffer(this.offerOption);
-                // 呼叫端设置本地 offer 描述
-                await this.peer.setLocalDescription(offer);
-                // 给对方发送 offer
-                this.sendMessage('VIDEO', 'offer', offer)
-            } catch (e) {
-                console.log('createOffer: ', e);
-            }
-        },
-        async onOffer(data) {
-            // 接收offer并发送 answer
-            try {
-                // 接收端设置远程 offer 描述
-                await this.peer.setRemoteDescription(JSON.parse(data.other))
-                // 接收端创建 answer
-                let answer = await this.peer.createAnswer();
-                // 接收端设置本地 answer 描述
-                await this.peer.setLocalDescription(answer);
-                // 给对方发送 answer
-                this.sendMessage('VIDEO', 'answer', answer);
-            } catch (e) {
-                console.log('onOffer: ', e);
-            }
-        },
-        async onAnswer(data) {
-            // 接收answer
-            try {
-                // 呼叫端设置远程 answer 描述
-                await this.peer.setRemoteDescription(JSON.parse(data.other))
-            } catch (e) {
-                console.log('onAnswer: ', e);
-            }
-        },
-        async onIce(data) { // 接收 ICE 候选
-            try {
-                // 设置远程 ICE
-                await this.peer.addIceCandidate(JSON.parse(data.other))
-            } catch (e) {
-                console.log('onAnswer: ', e);
-            }
+            }, 15000)
         },
         closeVideo(done) {
+            if (!this.hasAnswer) {
+                this.cancelVideo()
+                this.$message.info("已取消")
+            } else {
+                this.sendMessage('VIDEO', 'disconnect')
+                this.$refs.videoAndVoice.disconnectVideo()
+            }
+            this.hasAnswer = false
             done();
-            this.sendMessage('VIDEO', 'disconnect')
-            this.disconnectVideo()
         },
-        disconnectVideo() {
-            if (this.localstream) {
-                this.localstream.getTracks().forEach(track => track.stop())
-            }
-            if (this.peer) {
-                this.peer.close()
-            }
+        cancelVideo() {
+            this.$refs.audio.pause()
+            this.sendMessage('VIDEO', 'cancel')
+            this.sendVideoInfo('视频通话 已取消')
             this.dialogVideo = false
-            if (this.startTime) {
-                this.input = '视频通话 ' + (new Date() - this.startTime) / 1000 + 's'
-                this.send()
-            }
-            this.startTime = ''
         },
         getCrowdInfo(crowdId) {
             getCrowdInfo({id: crowdId}).then(res => {
                 this.crowdInfo = res.data
             })
+        },
+        tagMessage() {
+            let data = {
+                from: this.userId,
+                to: parseInt(this.nowActive.id),
+                time: moment().format('YYYY-MM-DD HH:mm:ss'),
+            }
+            this.$socket.emit('tagMessage', data)
+        },
+        messageToChat(message) {
+            if (message.to === this.userId) {
+                return {id: message.from, type: message.type, time: message.time, msg: this.messageSwitch(message)}
+            } else {
+                return {id: message.to, type: message.type, time: message.time, msg: this.messageSwitch(message)}
+            }
+        },
+        sendVideoInfo(data, type) {
+            this.input = data
+            this.send(type)
+        },
+        acceptVideo() {
+            this.$refs.audio.pause()
+            this.dialogRequest = false
+            this.dialogVideo = true
+            this.hasAnswer = true
+            // 同意之后创建自己的 peer 等待对方的 offer
+            this.$nextTick(() => {
+                this.$refs.videoAndVoice.createMedia()
+            })
+            this.sendMessage('VIDEO', 'accept')
+        },
+        rejectVideo() {
+            this.$refs.audio.pause()
+            this.dialogRequest = false
+            this.sendMessage('VIDEO', 'reject')
         }
-    },
+    }
+    ,
     created() {
         this.init()
         this.editorOption = quillRedefine({
@@ -596,7 +573,8 @@ export default {
             toolOptions: ['image', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
                 {'header': 1}, {'header': 2}, {'list': 'ordered'}, {'list': 'bullet'}, {'color': []}]
         })
-    },
+    }
+    ,
     mounted() {
         this.happyScrollContainer = document.getElementsByClassName('happy-scroll-container')[0]
         this.happyScrollElement = document.getElementsByClassName('happy-scroll-content')[0]
@@ -608,7 +586,8 @@ export default {
             }
         })
         this.getGroup()
-    },
+    }
+    ,
 
 }
 </script>
@@ -773,7 +752,7 @@ export default {
 
     .item {
         position: relative;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
 
         .headImg {
             height: 38px;
@@ -823,6 +802,40 @@ export default {
             margin-left: 60px;
             font: 12px Extra Small;
         }
+
+        .ar-player {
+            width: 280px;
+            height: 30px;
+            position: relative;
+
+
+            .ar-volume {
+                display: none;
+            }
+
+            .ar-player-bar {
+                margin-left: 0;
+                position: absolute;
+                left: 0;
+            }
+
+            .ar-player-actions {
+                width: 30px;
+                height: 30px;
+                position: absolute;
+                right: 0;
+
+                .ar-icon {
+                    width: 30px;
+                    height: 30px;
+                }
+            }
+
+            svg {
+                vertical-align: top;
+            }
+        }
+
     }
 
     .right {
@@ -847,6 +860,18 @@ export default {
         .addFriend {
             margin-top: 30px;
             margin-right: 60px;
+        }
+
+
+        .ar-player {
+            .ar-player-bar {
+                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+                .ar-player__time {
+                    color: black;
+                }
+            }
+
         }
     }
 
@@ -894,4 +919,12 @@ export default {
 
     }
 }
+
+.voice {
+    position: absolute;
+    top: -30px;
+    left: 20px;
+    right: 20px;
+}
+
 </style>

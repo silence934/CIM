@@ -22,6 +22,7 @@ public class CrowdVO {
 
     private Integer lordId;
 
+    private String announcement;
 
     public static CrowdVO forValue(CrowdEntity crowdEntity) {
         return Optional.ofNullable(crowdEntity).map(c ->
@@ -29,6 +30,7 @@ public class CrowdVO {
                         .lordId(c.getLordId())
                         .name(c.getName())
                         .avatar(c.getAvatar())
+                        .announcement(c.getAnnouncement())
                         .build()).orElse(null);
     }
 }

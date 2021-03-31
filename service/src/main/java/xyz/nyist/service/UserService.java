@@ -2,13 +2,21 @@ package xyz.nyist.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import xyz.nyist.dto.UserRegisterDTO;
+import xyz.nyist.entity.RoleEntity;
 import xyz.nyist.entity.UserEntity;
+import xyz.nyist.entity.UserSecurityEntity;
 import xyz.nyist.exception.CimException;
+import xyz.nyist.repository.RoleRepository;
 import xyz.nyist.repository.UserRepository;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @Author : fucong
@@ -17,10 +25,19 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
+
+    private static final List<String> DEFAULT_AVATAR_LIST =
+            Arrays.asList("https://dss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1603365312,3218205429&fm=26&gp=0.jpg",
+                    "https://dss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1603365312,3218205429&fm=26&gp=0.jpg");
+
+    private static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+
 
     public UserEntity getByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> new CimException("用户账号[%s]不存在", username));
@@ -37,4 +54,44 @@ public class UserService {
     public UserEntity findByUsernameOrNickname(String key) {
         return userRepository.findByUsernameOrNickname(key, key).stream().findFirst().orElse(null);
     }
+
+
+    public void registerUser(UserRegisterDTO userRegister) {
+
+        if (userRepository.findByUsername(userRegister.getUsername()).isPresent()) {
+            throw new CimException("账号[%s]已存在", userRegister.getUsername());
+        }
+
+        Random random = new Random();
+        int n = random.nextInt(DEFAULT_AVATAR_LIST.size());
+
+        List<RoleEntity> roles = roleRepository.findAllByDisplayName("普通角色");
+
+        UserEntity userEntity = UserEntity.builder()
+                .avatar(DEFAULT_AVATAR_LIST.get(n))
+                .username(userRegister.getUsername())
+                .password(PASSWORD_ENCODER.encode(userRegister.getPassword()))
+                .phone(userRegister.getPhone())
+                .mail(userRegister.getMail())
+                .enabled(true)
+                .roles(roles)
+                .sex("男")
+                .build();
+
+        List<UserSecurityEntity> securityEntities = Collections.singletonList(UserSecurityEntity.builder()
+                .question(userRegister.getQuestion())
+                .user(userEntity)
+                .answer(userRegister.getAnswer()).build());
+
+        userEntity.setSecurities(securityEntities);
+
+        userRepository.saveAndFlush(userEntity);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("账号不存在"));
+    }
+
+
 }

@@ -31,14 +31,42 @@
 
 
         <ul v-show="menu.visible" :style="{left:menu.left+'px',top:menu.top+'px'}" class="contextmenu">
+            <li v-if="rightCrowd.lordId===userId" @click="dialog=true">编辑群信息</li>
             <li @click="quit">退出该群</li>
         </ul>
+
+
+        <el-dialog width="530px" :close-on-click-modal="false" title="编辑群信息" :visible.sync="dialog">
+            <span class="crowd_label" style="vertical-align: top">群头像</span>
+            <el-upload
+                    :data="{type:'avatar'}"
+                    class="avatar-uploader"
+                    action="/api-v1/artifact/upload"
+                    :headers="{Authorization: 'Bearer ' + this.token}"
+                    :show-file-list="false"
+                    :on-success="success"
+                    :before-upload="beforeAvatarUpload">
+                <img v-if="rightCrowd.avatar" :src="rightCrowd.avatar" class="avatar" alt="">
+                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            </el-upload>
+            <br><br>
+            <span class="crowd_label">群名称</span>
+            <el-input style="width: 380px" v-model="rightCrowd.name" placeholder="请输入群名称"/>
+            <br><br>
+            <span class="crowd_label" style="vertical-align: top">群公告</span>
+            <el-input type="textarea" :rows="2" style="width: 380px" v-model="rightCrowd.announcement" placeholder="请输入群公告"/>
+            <br><br>
+            <div style="text-align: right">
+                <el-button @click="dialog=false;getCrowd()" type="info">取消</el-button>
+                <el-button @click="updateCrowdInfo()" type="primary">确定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script>
 import centerControl from '../../components/CenterControl'
-import {getCrowd, quitCrowd} from "@/api/crowd"
+import {getCrowd, quitCrowd, updateCrowd} from "@/api/crowd"
 import {quillRedefine} from "vue-quill-editor-upload"
 import {mapGetters} from "vuex"
 import router from "@/router"
@@ -56,7 +84,8 @@ export default {
                 left: 0,
                 top: 0
             },
-            rightCrowd: {}
+            rightCrowd: {},
+            dialog: false
         }
     },
     watch: {
@@ -126,6 +155,31 @@ export default {
                     this.getCrowd()
                 })
             })
+        },
+        beforeAvatarUpload(file) {
+            const isJPG = /^image/.test(file.type);
+            const isLt3M = file.size / 1024 / 1024 < 3;
+            if (!isJPG) {
+                this.$message.error('上传头像只能是图片!');
+            }
+            if (!isLt3M) {
+                this.$message.error('上传头像图片大小不能超过 3MB!');
+            }
+            this.rightCrowd.avatar = URL.createObjectURL(file);
+            return isJPG && isLt3M;
+        },
+        success(response) {
+            this.rightCrowd.avatar = response.data.path
+            this.$message.success("保存后生效")
+        },
+        updateCrowdInfo() {
+            updateCrowd(this.rightCrowd).then(() => {
+                this.$message.success("操作成功")
+                this.dialog = false
+                this.getCrowd()
+            }).catch(() => {
+                this.dialog = false
+            })
         }
     },
     mounted() {
@@ -139,6 +193,12 @@ export default {
 > > > .el-input__inner {
     line-height: 30px;
     height: 30px;
+}
+
+.crowd_label {
+    margin-right: 8px;
+    color: #303133;
+    font: 16px Medium;
 }
 
 .avatar_div {
@@ -192,6 +252,40 @@ export default {
     text-align: center;
 }
 
+> > > .avatar-uploader {
+
+    width: 83px;
+    display: inline-block;
+
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 150px;
+        height: 150px;
+        line-height: 178px;
+        text-align: center;
+    }
+
+    .avatar {
+        width: 80px;
+        height: 80px;
+        display: block;
+        border-radius: 0;
+    }
+
+}
 
 .contextmenu {
     margin: 0;

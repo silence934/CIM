@@ -24,6 +24,7 @@ import {HappyScroll} from 'vue-happy-scroll'
 import 'vue-happy-scroll/docs/happy-scroll.css'
 
 import Moment from 'moment'
+import AudioRecorder from 'vue-audio-recorder'
 
 Vue.filter('formatDate', function (value) {
   Moment.locale('zh-cn')
@@ -51,6 +52,8 @@ Vue.use(new VueSocketIO({
   query: {userName: 'admin'}
 }))
 Vue.use(VueQuillEditor)
+Vue.use(AudioRecorder)
+
 //自定义组件名
 Vue.component('happy-scroll', HappyScroll)
 

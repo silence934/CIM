@@ -22,6 +22,14 @@ export function logout() {
   })
 }
 
+export function registerUser(data) {
+  return request({
+    url: '/api-v1/user/register',
+    method: 'post',
+    data
+  })
+}
+
 export function getAvatar(params) {
   return request({
     url: '/api-v1/user/getAvatar',
@@ -89,6 +97,23 @@ export function addFriend(data) {
 export function deleteFriend(data) {
   return request({
     url: '/api-v1/friendGroup/deleteFriend',
+    method: 'post',
+    data
+  })
+}
+
+
+export function getVerificationCode(data) {
+  return request({
+    url: '/api-v1/user/getCode',
+    method: 'post',
+    data
+  })
+}
+
+export function retrievePassword(data) {
+  return request({
+    url: '/api-v1/user/retrievePassword',
     method: 'post',
     data
   })
