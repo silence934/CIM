@@ -71,7 +71,7 @@ export const constantRoutes = [
   },
   {
     path: '/logout',
-    component: () => import('@/views/nested/menu2/index'),
+    component: () => import('@/views/logout/index'),
     name: 'Nested',
     meta: {
       title: 'logout',

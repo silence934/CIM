@@ -10,7 +10,7 @@ import xyz.nyist.entity.CrowdEntity;
  * @Description :
  */
 public interface CrowdRepository extends JpaRepository<CrowdEntity, Integer>, JpaSpecificationExecutor<CrowdEntity> {
-    
+
 
     CrowdEntity findByName(String name);
 

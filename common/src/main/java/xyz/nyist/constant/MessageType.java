@@ -34,6 +34,7 @@ public enum MessageType {
      */
     VOICE("VOICE"),
 
+    STATISTICS_ONLINE("statistics_online"),
     /**
      * 添加好友
      */

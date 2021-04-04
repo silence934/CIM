@@ -5,7 +5,7 @@
                 <el-submenu :key="index" :index="''+index" v-for="(group,index) in friendData">
                     <template slot="title">
                         <span>
-                            {{ group.name }}  [0/{{ group.friends.length }}]
+                            {{ group.name }}  [{{ group.friends.filter(item => onlineUser.indexOf(item.id) > -1).length }}/{{ group.friends.length }}]
                         </span>
                     </template>
                     <el-menu-item
@@ -14,7 +14,7 @@
                             :index="''+user.id" v-for="(user) in group.friends">
                         <div style="width: 100%;height: 50px;">
                             <div class="avatar_div">
-                                <img class="avatar" :src="user.avatar" alt="">
+                                <img :class="{ gray:onlineUser.indexOf(user.id) === -1  }" class="avatar" :src="user.avatar" alt="">
                             </div>
                             <div class="name">
                                 {{ user.remark ? user.remark : user.nickname ? user.nickname : user.username }}
@@ -92,6 +92,7 @@
 import centerControl from '../../components/CenterControl'
 import {deleteFriend, getGroup, updateFriend} from '@/api/user'
 import router from '@/router'
+import {mapGetters} from "vuex"
 
 export default {
     name: 'friend',
@@ -136,7 +137,10 @@ export default {
     computed: {
         visible() {
             return this.menu.visible;
-        }
+        },
+        ...mapGetters([
+            'userId', 'onlineUser'
+        ]),
     },
     watch: {
         visible(value) {
@@ -219,6 +223,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.gray {
+    -webkit-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: gray;
+}
 
 .contextmenu {
     margin: 0;

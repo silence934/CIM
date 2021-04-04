@@ -10,7 +10,7 @@
                     text-color="#000"
                     active-text-color="#000">
                 <el-menu-item @click="open(item)" :index="item.id+item.type" v-for="(item,index) in chatList" :key="index">
-                    <img class="headImg" :src="item.avatar" alt=""/>
+                    <img class="headImg" :class="{ gray:onlineUser.indexOf(item.id) === -1  }" :src="item.avatar" alt=""/>
                     <div class="details">
                         <span class="nickname">{{ item.remark || item.nickname || item.username }}</span>
                         <span class="time">{{ item.time | formatDate }}</span>
@@ -235,7 +235,7 @@ export default {
                 if (newChat.id === parseInt(this.nowActive.id) &&
                         (newChat.type === this.nowActive.type ||
                                 (newChat.type !== 'ADD_FRIEND') && this.nowActive.type !== 'ADD_FRIEND')) {
-                    message.showTime = !moment(message.time)
+                    message.showTime = this.msgList.length === 0 || !moment(message.time)
                             .diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
                     this.msgList.push(message)
                     //this.nowActive.type = message.type
@@ -312,7 +312,7 @@ export default {
     },
     computed: {
         ...mapGetters([
-            'userId', 'chat', 'token', 'name', 'avatar'
+            'userId', 'chat', 'token', 'name', 'avatar', 'onlineUser'
         ]),
         userData() {
             return this.$route.query
@@ -387,7 +387,7 @@ export default {
                     time: time,
                     data: this.input,
                     type: type,
-                    showTime: !moment(time).diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
+                    showTime: this.msgList.length === 0 || !moment(time).diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
                 }
                 let switchMessage = this.messageSwitch(message)
 
@@ -548,8 +548,7 @@ export default {
             this.dialogRequest = false
             this.sendMessage('VIDEO', 'reject')
         }
-    }
-    ,
+    },
     created() {
         this.init()
         this.editorOption = quillRedefine({
@@ -573,8 +572,7 @@ export default {
             toolOptions: ['image', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
                 {'header': 1}, {'header': 2}, {'list': 'ordered'}, {'list': 'bullet'}, {'color': []}]
         })
-    }
-    ,
+    },
     mounted() {
         this.happyScrollContainer = document.getElementsByClassName('happy-scroll-container')[0]
         this.happyScrollElement = document.getElementsByClassName('happy-scroll-content')[0]
@@ -586,13 +584,20 @@ export default {
             }
         })
         this.getGroup()
-    }
-    ,
-
+    },
 }
 </script>
 
 <style lang="scss" scoped>
+
+.gray {
+    -webkit-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: gray;
+}
 
 .search {
     background-color: rgb(231, 230, 229);

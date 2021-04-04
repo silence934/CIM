@@ -14,7 +14,7 @@ import java.util.Optional;
  * @Description :
  */
 public interface CrowdUserRepository extends JpaRepository<CrowdUserEntity, Integer>, JpaSpecificationExecutor<CrowdUserEntity> {
-    
+
 
     Optional<CrowdUserEntity> findByCrowdAndUser(CrowdEntity crowd, UserEntity user);
 

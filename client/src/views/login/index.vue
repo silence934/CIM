@@ -194,10 +194,10 @@
                     />
                 </el-form-item>
 
-                <el-form-item prop="mail">
-                <span class="svg-container">
-                  <svg-icon icon-class="mail"/>
-                </span>
+                <el-form-item prop="mail" style="width: 400px">
+                    <span class="svg-container">
+                      <svg-icon icon-class="mail"/>
+                    </span>
                     <el-input
                             v-model="forgetForm.mail"
                             placeholder="请输入邮箱"
@@ -402,11 +402,15 @@ export default {
             })
         },
         getCode() {
-            getVerificationCode({username: this.forgetForm.username, mail: this.forgetForm.mail}).then(res => {
-                this.$message.success("验证码已发送至您的邮箱")
-                this.time = 60
-                this.setTime()
-            })
+            if (this.forgetForm.username && this.forgetForm.mail) {
+                getVerificationCode({username: this.forgetForm.username, mail: this.forgetForm.mail}).then(res => {
+                    this.$message.success("验证码已发送至您的邮箱")
+                    this.time = 60
+                    this.setTime()
+                })
+            } else {
+                this.$message.warning("请输入账号邮箱")
+            }
         },
         submit() {
             this.$refs.forget.validate(valid => {
@@ -428,10 +432,11 @@ export default {
         },
         setTime() {
             setTimeout(() => {
-                this.time--
-                if (this.time > 0) {
-                    this.setTime()
+                if (this.time === 0) {
+                    return
                 }
+                this.time--
+                this.setTime()
             }, 1000)
         }
     },

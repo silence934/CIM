@@ -24,7 +24,8 @@
         <netty.socketio>1.7.18</netty.socketio>
         <hutool.version>5.5.7</hutool.version>
         <guava.version>27.1-jre</guava.version>
-        <commons.io>2.6</commons.io>
+        <commons.io.version>2.6</commons.io.version>
+        <redisson.version>3.13.4</redisson.version>
     </properties>
 
     <modules>
@@ -111,9 +112,14 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>${commons.io}</version>
+                <version>${commons.io.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>cn.hutool</groupId>

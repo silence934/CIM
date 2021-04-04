@@ -1,5 +1,5 @@
-import { getInfo, login } from '@/api/user'
-import { getToken, getUser, removeToken, removeUser, setToken, setUser } from '@/utils/auth'
+import {getInfo, login} from '@/api/user'
+import {getToken, getUser, removeToken, removeUser, setToken, setUser} from '@/utils/auth'
 
 const state = {
   token: getToken(),
@@ -44,8 +44,8 @@ const mutations = {
 }
 
 const actions = {
-  login({ commit }, userInfo) {
-    const { username, password, isAdmin } = userInfo
+  login({commit}, userInfo) {
+    const {username, password, isAdmin} = userInfo
     return new Promise((resolve, reject) => {
       let data = new FormData
       data.append('username', username.trim())
@@ -61,14 +61,14 @@ const actions = {
     })
   },
 
-  getInfo({ commit, state }) {
+  getInfo({commit, state}) {
     return new Promise((resolve, reject) => {
       getInfo().then(response => {
-        const { data } = response
+        const {data} = response
         if (!data) {
           reject('验证失败，请重新登录')
         }
-        const { nickname, roles, avatar, id, departmentId } = data
+        const {nickname, roles, avatar, id, departmentId} = data
         commit('SET_NAME', nickname)
         commit('SET_ROLE', roles)
         commit('SET_AVATAR', avatar)
@@ -81,7 +81,7 @@ const actions = {
     })
   },
 
-  logout({ commit }) {
+  logout({commit}) {
     return new Promise((resolve, reject) => {
       commit('SET_TOKEN', '')
       commit('SET_NAME', '')
@@ -92,7 +92,7 @@ const actions = {
     })
   },
 
-  resetToken({ commit }) {
+  resetToken({commit}) {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       removeToken()
@@ -100,15 +100,15 @@ const actions = {
     })
   },
 
-  setToken({ commit }, token) {
+  setToken({commit}, token) {
     commit('SET_TOKEN', token)
   },
 
-  setUser({ commit }, user) {
+  setUser({commit}, user) {
     commit('SET_USER', user)
   },
 
-  removeUser({ commit }) {
+  removeUser({commit}) {
     commit('REMOVE_USER')
   }
 }

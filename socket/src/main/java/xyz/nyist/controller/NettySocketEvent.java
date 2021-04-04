@@ -16,9 +16,9 @@ import xyz.nyist.dto.TagMessageDTO;
 import xyz.nyist.entity.MessageEntity;
 import xyz.nyist.event.MessageEvent;
 import xyz.nyist.service.MessageService;
+import xyz.nyist.service.OnlineService;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +31,9 @@ import java.util.Map;
 @Component
 public class NettySocketEvent {
 
+
+    @Autowired
+    private OnlineService onlineService;
     @Autowired
     private ApplicationContext applicationContext;
     @Autowired
@@ -45,13 +48,14 @@ public class NettySocketEvent {
 
     @OnDisconnect
     public void onDisconnect(SocketIOClient client) {
-        Collection<List<SocketIOClient>> col = NettySocketIoConfig.CLIENT_MAP.values();
-        for (List<SocketIOClient> sockets : col) {
-            while (sockets.contains(client)) {
-                sockets.remove(client);
+        for (Integer id : NettySocketIoConfig.CLIENT_MAP.keySet()) {
+            List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.get(id);
+            if (clients.contains(client)) {
+                clients.remove(client);
+                onlineService.leave(id);
+                log.info("客户端:" + client.getSessionId() + "断开连接");
             }
         }
-        log.info("客户端:" + client.getSessionId() + "断开连接");
     }
 
     @OnEvent(value = "loginEvent")
@@ -62,6 +66,8 @@ public class NettySocketEvent {
         List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP
                 .computeIfAbsent(message.getFrom(), k -> new ArrayList<>());
         clients.add(client);
+        onlineService.join(message.getFrom());
+        log.info("用户(id):" + message.getFrom() + "上线");
     }
 
     @OnEvent(value = "logoutEvent")
@@ -71,6 +77,7 @@ public class NettySocketEvent {
         }
         List<SocketIOClient> clients = NettySocketIoConfig.CLIENT_MAP.get(message.getFrom());
         clients.remove(client);
+        onlineService.leave(message.getFrom());
         log.info("用户(id):" + message.getFrom() + "下线");
     }
 

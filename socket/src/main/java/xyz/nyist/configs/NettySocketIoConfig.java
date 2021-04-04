@@ -5,22 +5,29 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import xyz.nyist.constant.RedisKey;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Author: Silence
- * @Description:
+ * @Description: , ApplicationListener<ContextClosedEvent>
  * @Date:Create：in 2021/01/4 13:57
  */
 @Slf4j
 @org.springframework.context.annotation.Configuration
 public class NettySocketIoConfig implements CommandLineRunner {
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Value("${spring.cloud.consul.discovery.port}")
     private Integer port;
@@ -63,5 +70,11 @@ public class NettySocketIoConfig implements CommandLineRunner {
         SocketIOServer server = socketIoServer();
         server.start();
         log.info("socket.io启动成功！");
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.info("关闭服务");
+        NettySocketIoConfig.CLIENT_MAP.forEach((k, v) -> redissonClient.getAtomicLong(RedisKey.USER_ONLINE_KEY + k).getAndAdd(-v.size()));
     }
 }

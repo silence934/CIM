@@ -79,6 +79,10 @@ export default {
                 return
             }
             this.$refs.audio.play()
+        },
+        STATISTICS_ONLINE(data) {
+            console.log("在线人员", data)
+            this.$store.dispatch("chat/updateOnlineUser", data)
         }
     },
     methods: {

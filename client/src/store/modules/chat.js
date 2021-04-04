@@ -2,7 +2,8 @@ import {getChat, setChat} from '@/utils/auth'
 
 const state = {
   user_id: '',
-  list: []
+  list: [],
+  onlineUser: []
 }
 
 const mutations = {
@@ -30,6 +31,9 @@ const mutations = {
       item.type === i.type || ((item.type !== 'ADD_FRIEND') && i.type !== 'ADD_FRIEND')) ? compare(item, i) : i)
     setChat(state.list, state.user_id)
   },
+  UPDATE_ONLINE_USER: (state, data) => {
+    state.onlineUser = data
+  }
 }
 
 function compare(item, i) {
@@ -54,6 +58,10 @@ const actions = {
 
   updateList({commit}, item) {
     commit('UPDATE_LIST', item)
+  },
+
+  updateOnlineUser({commit}, data) {
+    commit('UPDATE_ONLINE_USER', data)
   }
 }
 

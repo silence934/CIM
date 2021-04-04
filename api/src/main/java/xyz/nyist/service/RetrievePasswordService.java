@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import xyz.nyist.constant.RedisKey;
 import xyz.nyist.dto.RetrievePasswordDTO;
 import xyz.nyist.dto.VerificationCodeDTO;
 import xyz.nyist.entity.UserEntity;
@@ -37,20 +38,18 @@ public class RetrievePasswordService {
     private static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
 
-    private static final String CODE_KEY = "cim:code:";
-
     public void getCode(VerificationCodeDTO verificationCode) {
         UserEntity user = userService.getByUsername(verificationCode.getUsername());
         if (!Objects.equals(user.getMail(), verificationCode.getMail())) {
             throw new CimException("账号与邮箱不匹配");
         }
 
-        Long expire = redisTemplate.getExpire(CODE_KEY + user.getId(), TimeUnit.MINUTES);
+        Long expire = redisTemplate.getExpire(RedisKey.CODE_KEY + user.getId(), TimeUnit.MINUTES);
 
         if (expire != null && expire < 2) {
             String code = CimUtil.getRandomString(6);
 
-            redisTemplate.opsForValue().set(CODE_KEY + user.getId(), code, 3L, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(RedisKey.CODE_KEY + user.getId(), code, 3L, TimeUnit.MINUTES);
 
             MailEvent mailEvent = new MailEvent(this, busProperties.getId());
             mailEvent.setMail(user.getMail());
@@ -65,9 +64,9 @@ public class RetrievePasswordService {
 
     public void retrievePassword(RetrievePasswordDTO retrievePasswordDTO) {
         UserEntity user = userService.getByUsername(retrievePasswordDTO.getUsername());
-        String code = redisTemplate.opsForValue().get(CODE_KEY + user.getId());
+        String code = redisTemplate.opsForValue().get(RedisKey.CODE_KEY + user.getId());
         if (Objects.equals(code, retrievePasswordDTO.getCode())) {
-            redisTemplate.delete(CODE_KEY + user.getId());
+            redisTemplate.delete(RedisKey.CODE_KEY + user.getId());
             user.setPassword(PASSWORD_ENCODER.encode(retrievePasswordDTO.getPassword()));
         } else {
             throw new CimException("验证码无效");

@@ -9,6 +9,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import xyz.nyist.dto.UserRegisterDTO;
+import xyz.nyist.entity.GroupEntity;
 import xyz.nyist.entity.RoleEntity;
 import xyz.nyist.entity.UserEntity;
 import xyz.nyist.entity.UserSecurityEntity;
@@ -83,7 +84,13 @@ public class UserService implements UserDetailsService {
                 .user(userEntity)
                 .answer(userRegister.getAnswer()).build());
 
+        List<GroupEntity> groupEntities = Collections.singletonList(GroupEntity.builder()
+                .user(userEntity)
+                .name("我的好友")
+                .build());
+
         userEntity.setSecurities(securityEntities);
+        userEntity.setGroups(groupEntities);
 
         userRepository.saveAndFlush(userEntity);
     }

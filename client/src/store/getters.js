@@ -10,6 +10,7 @@ const getters = {
   chat: state => state.chat.list,
   departmentId: state => state.user.departmentId,
   user: state => state.user.user,
-  roles: state => state.user.roles
+  roles: state => state.user.roles,
+  onlineUser: state => state.chat.onlineUser
 }
 export default getters
