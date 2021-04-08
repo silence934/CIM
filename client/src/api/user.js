@@ -15,10 +15,20 @@ export function getInfo() {
   })
 }
 
-export function logout() {
+
+export function update(data) {
   return request({
-    url: '/api-v1/vue-admin-template/user/logout',
-    method: 'post'
+    url: '/api-v1/user/update',
+    method: 'post',
+    data
+  })
+}
+
+export function updatePwdSelf(data) {
+  return request({
+    url: '/api-v1/user/updatePwd',
+    method: 'post',
+    data
   })
 }
 

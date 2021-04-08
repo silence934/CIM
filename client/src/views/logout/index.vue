@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import router from "@/router"
 import {mapState} from "vuex"
 
 export default {
@@ -16,9 +15,8 @@ export default {
         })
     },
     mounted() {
-        this.$store.dispatch('user/logout')
         this.$socket.emit('logoutEvent', {from: this.userId, type: "LOGOUT"})
-        router.push({path: '/login'})
+        this.$store.dispatch('user/logout')
     }
 };
 </script>

@@ -52,7 +52,7 @@
   //document.getElementById('address').innerHTML
 
 
-  let socket;//= io.connect("http://192.168.31.103:8011?mac=" + document.getElementById('from').value);
+  let socket;//= io.connect("http://native.cn:8011?mac=" + document.getElementById('from').value);
   let firstconnect = true;
 
   function message(data) {
@@ -117,7 +117,7 @@
   }
 
   function connect() {
-    socket = io.connect("http://192.168.31.103:8011?mac=" + document.getElementById('from').value, {
+    socket = io.connect("http://native.cn:8011?mac=" + document.getElementById('from').value, {
       transports: ['websocket']
     });
 

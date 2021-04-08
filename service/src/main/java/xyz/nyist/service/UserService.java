@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import xyz.nyist.component.UserContext;
 import xyz.nyist.dto.UserRegisterDTO;
 import xyz.nyist.entity.GroupEntity;
 import xyz.nyist.entity.RoleEntity;
@@ -16,6 +17,7 @@ import xyz.nyist.entity.UserSecurityEntity;
 import xyz.nyist.exception.CimException;
 import xyz.nyist.repository.RoleRepository;
 import xyz.nyist.repository.UserRepository;
+import xyz.nyist.result.ResultCode;
 
 import java.util.*;
 
@@ -38,6 +40,8 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private UserContext userContext;
 
 
     public UserEntity getByUsername(String username) {
@@ -100,5 +104,13 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("账号不存在"));
     }
 
-
+   
+    public void updatePwd(String pwd, String npwd) {
+        UserEntity user = userContext.getCurrentUser();
+        if (!PASSWORD_ENCODER.matches(pwd, user.getPassword())) {
+            throw new CimException(ResultCode.USERNAME_OR_PASSWORD_ERROR, "用户名或密码错误");
+        }
+        user.setPassword(PASSWORD_ENCODER.encode(npwd));
+        userRepository.saveAndFlush(user);
+    }
 }

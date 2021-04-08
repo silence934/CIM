@@ -4,8 +4,8 @@
             <div @click="dialogVisible = true" style="position: relative;float:right;font-size:20px;text-align: right;">
                 <i class="el-icon-s-operation"></i>
             </div>
-            <div style="position: relative;float:left">
-                <img style="height: 40px;width: 40px;-webkit-border-radius: 50%;margin-right: 10px" :src="avatar">
+            <div style="position: relative;float:left" @click="dialogVisible1=true">
+                <img style="height: 40px;width: 40px;-webkit-border-radius: 50%;margin-right: 10px" :src="avatar" alt="">
             </div>
             <div style="line-height: 1.6;overflow: hidden;">
                 <h3 style="margin: 0">{{ name }}</h3>
@@ -21,11 +21,15 @@
         </div>
         <slot></slot>
 
-
-        <el-dialog :modal=false :visible.sync="dialogVisible" width="130px">
+        <el-dialog class="menu" :modal=false :visible.sync="dialogVisible" width="130px">
             <div class="select" @click="createGroup">新建分组</div>
             <div class="select" @click="createCrowd">新建群</div>
         </el-dialog>
+
+        <el-dialog :visible.sync="dialogVisible1" width="750px">
+            <user-info @close="dialogVisible1=false"></user-info>
+        </el-dialog>
+
     </div>
 
 </template>
@@ -34,9 +38,12 @@
 import {mapGetters} from "vuex"
 import {addGroup} from "@/api/user"
 import {addCrowd} from "@/api/crowd"
+import ImageCropper from '@/components/ImageCropper'
+import userInfo from './userInfo'
 
 export default {
     name: 'CenterControl',
+    components: {ImageCropper, userInfo},
     computed: {
         ...mapGetters([
             'name', 'avatar'
@@ -44,7 +51,9 @@ export default {
     },
     data() {
         return {
-            dialogVisible: false
+            dialogVisible: false,
+            dialogVisible1: false,
+
         }
     },
     methods: {
@@ -75,7 +84,8 @@ export default {
                     })
                 }
             })
-        }
+        },
+
     }
 }
 </script>
@@ -95,34 +105,40 @@ export default {
     vertical-align: top;
 }
 
-> > > .el-dialog {
+> > > .menu {
+    .el-dialog {
 
-    width: 130px;
-    top: 35px;
-    left: 325px;
-    margin: 0 !important;
+        width: 130px;
+        top: 35px;
+        left: 325px;
+        margin: 0 !important;
 
-    .el-dialog__header {
-        display: none;
-    }
-
-    .el-dialog__body {
-
-        padding: 5px 0;
-
-        .select {
-            font-size: 16px;
-            color: #303133;
-            font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
-            cursor: pointer;
-            padding: 5px 8px;
+        .el-dialog__header {
+            display: none;
         }
 
-        .select:hover {
-            background-color: rgb(205, 205, 207);
+        .el-dialog__body {
+
+            padding: 5px 0;
+
+            .select {
+                font-size: 16px;
+                color: #303133;
+                font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+                cursor: pointer;
+                padding: 5px 8px;
+            }
+
+            .select:hover {
+                background-color: rgb(205, 205, 207);
+            }
         }
     }
+
 }
 
+> > > .el-dialog__body {
+    padding: 0;
+}
 
 </style>

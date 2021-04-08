@@ -41,7 +41,6 @@ public class FileController {
     @Autowired
     private ArtifactService artifactService;
 
-
     /**
      * 上传文件
      *

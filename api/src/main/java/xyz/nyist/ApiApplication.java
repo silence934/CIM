@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.bus.jackson.RemoteApplicationEventScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import xyz.nyist.event.ArtifactDeleteEvent;
+import xyz.nyist.event.ArtifactUseEvent;
 import xyz.nyist.event.MailEvent;
 import xyz.nyist.event.MessageEvent;
 
@@ -16,7 +18,8 @@ import xyz.nyist.event.MessageEvent;
 @EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
-@RemoteApplicationEventScan(basePackageClasses = {MailEvent.class, MessageEvent.class})
+@RemoteApplicationEventScan(basePackageClasses =
+        {MailEvent.class, MessageEvent.class, ArtifactDeleteEvent.class, ArtifactUseEvent.class})
 public class ApiApplication {
     public static void main(String[] args) {
         SpringApplication.run(ApiApplication.class, args);

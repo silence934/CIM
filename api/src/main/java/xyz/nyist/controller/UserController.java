@@ -5,10 +5,12 @@ import org.springframework.web.bind.annotation.*;
 import xyz.nyist.component.UserContext;
 import xyz.nyist.dto.RetrievePasswordDTO;
 import xyz.nyist.dto.UserRegisterDTO;
+import xyz.nyist.dto.UserUpdateDTO;
 import xyz.nyist.dto.VerificationCodeDTO;
 import xyz.nyist.entity.CrowdEntity;
 import xyz.nyist.entity.UserEntity;
 import xyz.nyist.result.Result;
+import xyz.nyist.service.ApiUserService;
 import xyz.nyist.service.CrowdService;
 import xyz.nyist.service.RetrievePasswordService;
 import xyz.nyist.service.UserService;
@@ -31,6 +33,8 @@ public class UserController {
     private UserContext userContext;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ApiUserService apiUserService;
     @Autowired
     private CrowdService crowdService;
     @Autowired
@@ -95,4 +99,16 @@ public class UserController {
         return Result.success();
     }
 
+    @PostMapping("/update")
+    public Result<Void> update(@RequestBody UserUpdateDTO userUpdate) {
+        apiUserService.update(userUpdate);
+        return Result.success();
+    }
+
+
+    @PostMapping("/updatePwd")
+    public Result<Void> updatePwd(String pwd, String npwd) {
+        userService.updatePwd(pwd, npwd);
+        return Result.success();
+    }
 }

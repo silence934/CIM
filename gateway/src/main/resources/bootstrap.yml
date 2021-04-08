@@ -1,5 +1,5 @@
 server:
-  address: 192.168.31.103
+  address: native.cn
 
 spring:
   security:
