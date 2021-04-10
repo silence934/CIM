@@ -6,7 +6,7 @@ spring:
     name: cim-file-server
   cloud:
     consul:
-      host: localhost  #consul的IP（可以改成自己电脑ip）
+      host: conslu.nyist.com  #consul的IP（可以改成自己电脑ip）
       port: 8500       #consul启动端口默认8500
       discovery:
         service-name: ${spring.application.name}
@@ -30,7 +30,7 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/cim?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://mysql.nyist.com:3306/cim?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8
     username: root
     password: 123456
     hikari:
