@@ -100,8 +100,8 @@ public class UserEntity extends BaseEntity implements UserDetails {
     }
 
 
-    public String getAvatar() {
-        return avatar == null ? username : avatar;
+    public String getNickname() {
+        return nickname == null ? username : nickname;
     }
 
 

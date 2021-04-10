@@ -9,8 +9,6 @@ import xyz.nyist.exception.CimException;
 import xyz.nyist.repository.ArtifactRepository;
 import xyz.nyist.result.ResultCode;
 
-import java.util.Optional;
-
 /**
  * @Author : fucong
  * @Date: 2021-03-14 10:39
@@ -21,6 +19,8 @@ import java.util.Optional;
 public class ArtifactService {
     @Autowired
     private ArtifactRepository artifactRepository;
+
+    private static final String key = "/proxy/api-v1/artifact";
 
     public ArtifactEntity create(String path) {
         return artifactRepository.saveAndFlush(ArtifactEntity.builder()
@@ -34,7 +34,10 @@ public class ArtifactService {
     }
 
     public ArtifactEntity getByPath(String path) {
-        return artifactRepository.getByPath(path).orElseThrow(() -> new CimException(ResultCode.SYSTEM_RESOURCE_ERROR, "文件不存在", path));
+        if (path.startsWith(key)) {
+            path = path.substring(key.length());
+        }
+        return artifactRepository.getByPath(path).orElseThrow(() -> new CimException(ResultCode.SYSTEM_RESOURCE_ERROR, "文件不存在"));
     }
 
     public void deleteById(Integer id) {
@@ -43,8 +46,8 @@ public class ArtifactService {
     }
 
     public void deleteByPath(String path) {
-        Optional<ArtifactEntity> optional = artifactRepository.getByPath(path);
-        optional.ifPresent(artifactEntity -> artifactRepository.delete(artifactEntity));
+        ArtifactEntity artifact = getByPath(path);
+        artifactRepository.delete(artifact);
     }
 
     public void update(ArtifactEntity artifact) {

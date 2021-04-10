@@ -25,7 +25,7 @@ public class MessageEvent extends RemoteApplicationEvent {
 
 
     public MessageEvent(Object source, String originService, MessageEntity message) {
-        super(source, originService, "*");
+        super(source, originService, "cim-socket");
         this.message = message;
     }
 }

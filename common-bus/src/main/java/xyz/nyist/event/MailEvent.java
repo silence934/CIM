@@ -27,6 +27,6 @@ public class MailEvent extends RemoteApplicationEvent {
 
 
     public MailEvent(Object source, String originService) {
-        super(source, originService, "*");
+        super(source, originService, "cim-mail");
     }
 }

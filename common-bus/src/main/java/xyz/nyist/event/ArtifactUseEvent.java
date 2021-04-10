@@ -20,7 +20,7 @@ public class ArtifactUseEvent extends RemoteApplicationEvent {
     private String path;
 
     public ArtifactUseEvent(Object source, String originService, String path) {
-        super(source, originService, "*");
+        super(source, originService, "cim-file-server");
         this.path = path;
     }
 }

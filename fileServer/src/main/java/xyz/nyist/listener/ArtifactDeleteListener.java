@@ -23,10 +23,15 @@ public class ArtifactDeleteListener implements ApplicationListener<ArtifactDelet
     @Autowired
     private ArtifactService artifactService;
 
+    private static final String key = "/proxy/api-v1/artifact";
+
     @Override
     public void onApplicationEvent(ArtifactDeleteEvent event) {
         String path = event.getPath();
         String[] split = path.split("\\?id=");
+        if (split[0].startsWith(key)) {
+            split[0] = split[0].substring(key.length());
+        }
         log.warn("删除文件" + split[0] + "----" + new File(this.path + split[0]).delete());
         if (split.length == 2) {
             artifactService.deleteById(Integer.valueOf(split[1]));
