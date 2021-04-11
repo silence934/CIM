@@ -33,18 +33,18 @@ module.exports = {
         }
       },
       ['^/api-v1']: {
-        target: `http://native.cn:8011`,
+        target: `http://gateway.nyist.xyz:8011`,
         changeOrigin: true
       },
       ['^/proxy']: {
-        target: `http://native.cn:8011`,
+        target: `http://gateway.nyist.xyz:8011`,
         changeOrigin: true,
         pathRewrite: {
           ['^/proxy']: ''
         }
       },
       ['^/cim-artifact']: {
-        target: `http://native.cn:8011`,
+        target: `http://gateway.nyist.xyz:8011`,
         changeOrigin: true,
         pathRewrite: {
           ['^/cim-artifact']: '/api-v1/artifact/cim-artifact'

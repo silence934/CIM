@@ -117,7 +117,7 @@
   }
 
   function connect() {
-    socket = io.connect("http://native.cn:8011?mac=" + document.getElementById('from').value, {
+    socket = io.connect("http://gateway.nyist.xyz:8011?mac=" + document.getElementById('from').value, {
       transports: ['websocket']
     });
 
