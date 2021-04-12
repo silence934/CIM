@@ -47,7 +47,7 @@ spring:
         format_sql: true
         enable_lazy_load_no_trans: true
   redis:
-    host: 127.0.0.1
+    host: redis.nyist.com
     port: 6379
     lettuce:
       pool:
