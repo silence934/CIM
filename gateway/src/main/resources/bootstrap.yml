@@ -6,7 +6,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: 'http://${server.address}:8013/getPublicKey'
+          jwk-set-uri: 'http://${server.address}:${server.port}/api-v1/author/getPublicKey'
   application:
     name: cim-getway
   cloud:
@@ -27,9 +27,10 @@ spring:
         - id: author
           uri: lb://cim-authorization
           predicates:
-            - Path=/api-v1/oauth/token
+            - Path=/api-v1/author/**
           filters:
-            - StripPrefix=1
+            - StripPrefix=2
+
         - id: file
           uri: lb://cim-file-server
           predicates:
@@ -53,7 +54,8 @@ spring:
 
 white-list:
   urls:
-    - "/api-v1/oauth/token"
+    - "/api-v1/author/oauth/token"
+    - "/api-v1/author/getPublicKey"
     - "/api-v1/user/register"
     - "/api-v1/user/getCode"
     - "/api-v1/user/retrievePassword"

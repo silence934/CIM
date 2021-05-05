@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -99,21 +100,37 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         DefaultTokenServices services = new DefaultTokenServices();
         services.setClientDetailsService(clientDetailsService());
         services.setSupportRefreshToken(true);
+        services.setReuseRefreshToken(true);
         services.setTokenStore(tokenStore);
         services.setTokenEnhancer(tokenEnhancerChain);
-        services.setAccessTokenValiditySeconds(7200);
-        services.setRefreshTokenValiditySeconds(29000);
+        services.setAccessTokenValiditySeconds(3600*2);
+        services.setRefreshTokenValiditySeconds(3600*72);
         return services;
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setHideUserNotFoundExceptions(false);
+        provider.setUserDetailsService(userService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
     }
 
     @Bean
     public TokenEnhancer tokenEnhancer() {
         return (accessToken, authentication) -> {
-            UserEntity user = (UserEntity) authentication.getUserAuthentication().getPrincipal();
-
             Map<String, Object> map = new HashMap<>(2);
-            map.put(AuthConstants.JWT_USER_ID_KEY, user.getId());
 
+            Object principal = authentication.getUserAuthentication().getPrincipal();
+            if (principal instanceof UserEntity){
+                UserEntity user = (UserEntity) principal;
+                map.put(AuthConstants.JWT_USER_ID_KEY, user.getId());
+            }else if (principal instanceof String){
+                String username=(String)principal;
+                UserEntity user = userService.getByUsername(username);
+                map.put(AuthConstants.JWT_USER_ID_KEY, user.getId());
+            }
             ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(map);
             return accessToken;
         };

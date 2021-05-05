@@ -38,6 +38,7 @@
         <module>fileServer</module>
         <module>service</module>
         <module>common-bus</module>
+        <module>test-temp</module>
     </modules>
 
     <dependencies>

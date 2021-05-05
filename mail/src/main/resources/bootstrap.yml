@@ -5,9 +5,9 @@ spring:
   application:
     name: cim-mail
   mail:
-    host: smtp.163.com
-    username: 18240655385@163.com
-    password: LATKAGYVQVPVIOML
+    host: smtp.qq.com
+    username: 446626585@qq.com
+    password: lyfaockvwsbdbhhh
     default-encoding: utf-8
     port: 25
   cloud:
@@ -20,7 +20,7 @@ spring:
         healthCheckInterval: 5s     #健康检查频率
   rabbitmq:
     port: 5672
-    host: www.nyist.xyz
+    host: rabbitmq.nyist.com
     username: guest
     password: guest
     connection-timeout: 15000

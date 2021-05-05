@@ -14,6 +14,7 @@ import xyz.nyist.dto.VerificationCodeDTO;
 import xyz.nyist.entity.UserEntity;
 import xyz.nyist.event.MailEvent;
 import xyz.nyist.exception.CimException;
+import xyz.nyist.repository.UserRepository;
 import xyz.nyist.utils.CimUtil;
 
 import java.util.Objects;
@@ -29,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 public class RetrievePasswordService {
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private ApplicationContext applicationContext;
     @Autowired
@@ -68,6 +71,7 @@ public class RetrievePasswordService {
         if (Objects.equals(code, retrievePasswordDTO.getCode())) {
             redisTemplate.delete(RedisKey.CODE_KEY + user.getId());
             user.setPassword(PASSWORD_ENCODER.encode(retrievePasswordDTO.getPassword()));
+            userRepository.saveAndFlush(user);
         } else {
             throw new CimException("验证码无效");
         }

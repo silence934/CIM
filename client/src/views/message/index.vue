@@ -35,8 +35,8 @@
                             <span class="time" v-if="item.showTime">
                                 {{ item.time }}
                             </span>
-                            <span v-if="item.type==='VOICE'" class="message">
-                                 <audio-player :src="item.data"/>
+                            <span v-if="item.type==='VOICE'" class="message" style="padding: 3px 0">
+                                 <audio-player :src="item.data" :isLeft="item.from!==userId"/>
                             </span>
                             <span v-else class="message" v-html="item.data"></span>
                             <el-image class="headImg" :src="item.from===userId ?avatar:nowActive.avatar"/>
@@ -73,9 +73,6 @@
                 <Voice v-if="voiceShow" class="voice" :nowActive="nowActive"
                        @close="voiceShow=false"
                        @sendVideoInfo="sendVideoInfo"/>
-                <!--                <button type="button" class="ql-underline video" @click="isVideo=false;video()" style="left: 405px">
-                                    <i class="el-icon-phone"></i>
-                                </button>-->
             </div>
             <el-button @click="send()" style="float: right" size="mini">发送</el-button>
         </el-footer>
@@ -143,19 +140,26 @@
 </template>
 
 <script>
-import {quillRedefine} from 'vue-quill-editor-upload'
 import {mapGetters} from 'vuex'
 import moment from 'moment'
 import {addFriend, getDetails, getGroup, getUsersInfo} from '@/api/user'
 import elementResizeDetector from 'element-resize-detector'
-import centerControl from '../../components/CenterControl'
 import {getCrowdInfo} from "@/api/crowd"
+import centerControl from '../../components/CenterControl'
 import VideoAndVoice from "@/views/message/VideoAndVoice"
-import Voice from "@/views/message/Voice"
+import Voice from "./Voice"
+import AudioPlayer from "./AudioPlayer"
+
+import { Quill} from 'vue-quill-editor'
+import { ImageExtend, QuillWatch} from 'quill-image-extend-module'
+import quillEmoji from 'quill-emoji'
+import 'quill-emoji/dist/quill-emoji.css'
+Quill.register('modules/quillEmoji', quillEmoji)
+Quill.register('modules/ImageExtend', ImageExtend)
 
 export default {
     name: 'index',
-    components: {Voice, VideoAndVoice, quillRedefine, centerControl},
+    components: {Voice, VideoAndVoice, centerControl,AudioPlayer},
     sockets: {
         getChat(messageList) {
             messageList = messageList.content.reverse()
@@ -200,6 +204,7 @@ export default {
             if (newChat.id === parseInt(this.nowActive.id) && message.type === 'VIDEO') {
                 switch (message.data) {
                     case 'request': {
+                        this.$refs.audio.currentTime = 0
                         this.$refs.audio.play()
                         this.dialogRequest = true
                         break
@@ -376,9 +381,10 @@ export default {
             if (this.input) {
                 this.input = this.input.replace(/<p>/g, '')
                 this.input = this.input.replace(/<\/p>/g, '')
-                if (type && typeof type !== "string") {
+                if (!type) {
                     type = (this.input.indexOf('<img src=') === -1 ? 'GENERAL' : 'IMG')
                 }
+
                 let time = moment().format('YYYY-MM-DD HH:mm:ss')
 
                 let message = {
@@ -386,7 +392,7 @@ export default {
                     to: parseInt(this.nowActive.id),
                     time: time,
                     data: this.input,
-                    type: type,
+                    type: type?type:'GENERAL',
                     showTime: this.msgList.length === 0 || !moment(time).diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
                 }
                 let switchMessage = this.messageSwitch(message)
@@ -447,14 +453,13 @@ export default {
             if (message.type === 'IMG') {
                 return '图片'
             } else if (message.type === 'VIDEO') {
-                return '视屏通话'
+                return '视频通话'
             } else if (message.type === 'VOICE') {
                 return '语音消息'
             } else {
                 let a = message.data.replace(/<.*?>/ig, '')
                 return a.substring(0, 7) + (a.length > 7 ? '...' : '')
             }
-
         },
         addFriend(accept) {
             let data;
@@ -483,6 +488,7 @@ export default {
             this.sendMessage('VIDEO', 'request')
             this.dialogVideo = true
             this.hasAnswer = false
+            this.$refs.audio.currentTime = 0
             this.$refs.audio.play()
             this.videoTimeout = setTimeout(() => {
                 if (!this.hasAnswer) {
@@ -494,6 +500,7 @@ export default {
         closeVideo(done) {
             if (!this.hasAnswer) {
                 this.cancelVideo()
+                clearTimeout(this.videoTimeout)
                 this.$message.info("已取消")
             } else {
                 this.sendMessage('VIDEO', 'disconnect')
@@ -530,7 +537,11 @@ export default {
         },
         sendVideoInfo(data, type) {
             this.input = data
-            this.send(type)
+            if (type){
+              this.send(type)
+            }else {
+              this.send()
+            }
         },
         acceptVideo() {
             this.$refs.audio.pause()
@@ -551,27 +562,36 @@ export default {
     },
     created() {
         this.init()
-        this.editorOption = quillRedefine({
-            // 图片上传的设置
-            uploadConfig: {
-                action: '/api-v1/artifact/upload',
-                res: (res) => {
-                    return '/proxy/api-v1/artifact' + res.data.path
-                },
-                methods: 'POST',
+        this.editorOption={
+            placeholder: '请输入内容',
+            modules: {
+              ImageExtend: {
+                loading: true,
+                size: 3,
                 name: 'file',
-                size: 1024 * 3,  //单位为Kb,
-                accept: 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon',
-                header: (xhr, formData) => {
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
-                    formData.append('type', 'chat')
+                action: '/api-v1/artifact/upload',
+                methods: 'POST',
+                response: (res) => {
+                  return '/proxy/api-v1/artifact' + res.data.path
+                },
+                change: (xhr, formData) => {
+                  xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
+                  formData.append('type', 'chat')
+                },
+              },
+              'emoji-toolbar': true,
+              'emoji-shortname': true,
+              toolbar: {
+                container: ['image', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
+                  'emoji', {'header': 1}, {'header': 2}, {'list': 'ordered'}, {'list': 'bullet'}, {'color': []}],
+                handlers: {
+                  'image':  ()=> {
+                    QuillWatch.emit(this.quill.id)
+                  }
                 }
-            },
-            // 以下所有设置都和vue-quill-editor本身所对应
-            placeholder: '请输入内容',  // 可选参数 富文本框内的提示语
-            toolOptions: ['image', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
-                {'header': 1}, {'header': 2}, {'list': 'ordered'}, {'list': 'bullet'}, {'color': []}]
-        })
+              },
+            }
+        }
     },
     mounted() {
         this.happyScrollContainer = document.getElementsByClassName('happy-scroll-container')[0]
@@ -590,346 +610,366 @@ export default {
 
 <style lang="scss" scoped>
 
-.gray {
-    -webkit-filter: grayscale(100%);
-    -o-filter: grayscale(100%);
-    -moz-filter: grayscale(100%);
-    -ms-filter: grayscale(100%);
-    filter: grayscale(100%);
-    filter: gray;
-}
+  .gray {
+      -webkit-filter: grayscale(100%);
+      -o-filter: grayscale(100%);
+      -moz-filter: grayscale(100%);
+      -ms-filter: grayscale(100%);
+      filter: grayscale(100%);
+      filter: gray;
+  }
 
-.search {
-    background-color: rgb(231, 230, 229);
-    padding: 10px;
-    height: 48px;
-    width: 250px;
-}
+  .search {
+      background-color: rgb(231, 230, 229);
+      padding: 10px;
+      height: 48px;
+      width: 250px;
+  }
 
-.headImg {
-    vertical-align: 5px;
-    width: 44px;
-    height: 44px;
-}
+  .headImg {
+      vertical-align: 5px;
+      width: 44px;
+      height: 44px;
+  }
 
-> > > .el-drawer {
-    width: 400px !important;
+  > > > .el-drawer {
+      width: 400px !important;
 
-    .el-drawer__header {
-        display: none;
-    }
+      .el-drawer__header {
+          display: none;
+      }
 
-    .crowdUser {
-        height: 50px;
-        padding: 10px 5px;
-    }
+      .crowdUser {
+          height: 50px;
+          padding: 10px 5px;
+      }
 
-    .crowdUser:hover {
-        background-color: rgb(235, 236, 237);
-    }
-}
+      .crowdUser:hover {
+          background-color: rgb(235, 236, 237);
+      }
+  }
 
-> > > .el-divider {
-    margin-top: 8px;
-}
+  > > > .el-divider {
+      margin-top: 8px;
+  }
 
-> > > .el-menu-item {
-    padding: 8px !important;
-    height: 60px;
+  > > > .el-menu-item {
+      padding: 8px !important;
+      height: 60px;
 
-    .details {
-        position: absolute;
-        padding-left: 8px;
-        left: 52px;
-        top: 8px;
-        height: 44px;
-        width: 189px;
+      .details {
+          position: absolute;
+          padding-left: 8px;
+          left: 52px;
+          top: 8px;
+          height: 44px;
+          width: 189px;
 
-        .el-badge__content {
-            position: absolute;
-            left: 150px;
-            top: -5px;
-        }
+          .el-badge__content {
+              position: absolute;
+              left: 150px;
+              top: -5px;
+          }
 
-        .nickname {
-            position: absolute;
-            top: 0;
-            left: 8px;
-            height: 25px;
-            line-height: 25px;
-            font: 14px Base;
-            font-weight: 600;
-            color: #303133;
-        }
+          .nickname {
+              position: absolute;
+              top: 0;
+              left: 8px;
+              height: 25px;
+              line-height: 25px;
+              font: 14px Base;
+              font-weight: 600;
+              color: #303133;
+          }
 
-        .message {
-            position: absolute;
-            top: 25px;
-            left: 8px;
-            height: 19px;
-            line-height: 19px;
-            font: 12px Extra Small;
-            color: #909399;
-        }
+          .message {
+              position: absolute;
+              top: 25px;
+              left: 8px;
+              height: 19px;
+              line-height: 19px;
+              font: 12px Extra Small;
+              color: #909399;
+          }
 
-        .time {
-            position: absolute;
-            right: 0;
-            top: 0;
-            height: 19px;
-            line-height: 19px;
-            font: 12px Extra Small;
-            color: #909399;
-        }
-    }
-}
+          .time {
+              position: absolute;
+              right: 0;
+              top: 0;
+              height: 19px;
+              line-height: 19px;
+              font: 12px Extra Small;
+              color: #909399;
+          }
+      }
+  }
 
-> > > .el-menu-item:hover {
-    background-color: rgb(198, 197, 196)
-}
+  > > > .el-menu-item:hover {
+      background-color: rgb(198, 197, 196)
+  }
 
-> > > .is-active {
-    background-color: rgb(198, 197, 196)
-}
+  > > > .is-active {
+      background-color: rgb(198, 197, 196)
+  }
 
-> > > .main {
-    position: absolute;
-    top: 0;
-    left: 280px;
-    right: 0;
-    bottom: 170px;
-    padding-bottom: 5px;
-    background-color: rgb(245, 245, 245);
-}
+  > > > .main {
+      position: absolute;
+      top: 0;
+      left: 280px;
+      right: 0;
+      bottom: 170px;
+      padding-bottom: 5px;
+      background-color: rgb(245, 245, 245);
+  }
 
-> > > .el-footer {
-    position: absolute;
-    left: 280px;
-    bottom: 0;
-    right: 0;
-    padding: 0 10px 0 10px;
-    height: 170px !important;
+  > > > .el-footer {
+      position: absolute;
+      left: 280px;
+      bottom: 0;
+      right: 0;
+      padding: 0 10px 0 10px;
+      height: 170px !important;
 
 
-    .video {
-        border: none;
-        background-color: #FFF;
-        position: absolute;
-        top: 8px;
-        left: 345px;
-    }
-}
+      .video {
+          border: none;
+          background-color: #FFF;
+          position: absolute;
+          top: 8px;
+          left: 345px;
+      }
+  }
 
-> > > .quill-editor {
-    width: 100%;
+  > > > .quill-editor {
+      width: 100%;
 
-    .ql-toolbar {
-        border: none;
-    }
+      .ql-toolbar {
+          border: none;
+      }
 
-    .ql-container {
-        border: none;
-        height: 95px;
+      .ql-container {
+          border: none;
+          height: 95px;
 
-        img {
-            max-height: 150px;
-        }
-    }
+          img {
+              max-height: 150px;
+          }
+      }
 
-    .ql-toolbar {
-        padding-left: 0 !important;
-    }
-}
+      .ql-toolbar {
+          padding-left: 0 !important;
+      }
+  }
 
-> > > .happy-scroll-container {
-    width: 100% !important;
-    height: 100% !important;
+  > > >#emoji-palette{
+    top: -258px!important;
+    left: 0!important;
+    max-width: 350px;
 
-    .happy-scroll-content {
-        width: 100%;
-
-        p {
-            font: 12px Extra Small;
-            color: #909399;
-            text-align: center
+    #tab-toolbar{
+        li{
+          width: 40px!important;
         }
     }
 
-    .item {
-        position: relative;
-        margin-bottom: 30px;
-
-        .headImg {
-            height: 38px;
-            width: 38px;
-            position: absolute;
-            top: 20px;
-            left: 0;
-        }
-
-        .time {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translate(-50%, 0);
-            color: #C0C4CC;
-            font: 13px Extra Small;
-        }
-
-        .message:after {
-            border: 3px solid transparent;
-            border-right: 3px solid #FFF;
-            position: absolute;
-            content: "";
-            top: 20px;
-            margin-top: -10px;
-            right: 100%;
-        }
-
-        .message {
-            display: inline-block;
-            border-radius: 4px;
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            position: relative;
-            top: 20px;
-            left: 45px;
-            background-color: #FFF;
-            max-width: 50%;
-
-            img {
-                max-width: 150px;
-            }
-        }
-
-        .addFriend {
-            margin-top: 30px;
-            margin-left: 60px;
-            font: 12px Extra Small;
-        }
-
-        .ar-player {
-            width: 280px;
-            height: 30px;
-            position: relative;
-
-
-            .ar-volume {
-                display: none;
-            }
-
-            .ar-player-bar {
-                margin-left: 0;
-                position: absolute;
-                left: 0;
-            }
-
-            .ar-player-actions {
-                width: 30px;
-                height: 30px;
-                position: absolute;
-                right: 0;
-
-                .ar-icon {
-                    width: 30px;
-                    height: 30px;
-                }
-            }
-
-            svg {
-                vertical-align: top;
-            }
-        }
-
+    #tab-panel{
+      max-height: 180px;
+      .bem{
+        margin: 3px!important;
+      }
     }
 
-    .right {
-        text-align: right;
+  }
 
-        .headImg {
-            left: auto;
-            right: 0 !important;
-        }
+  > > > .happy-scroll-container {
+      width: 100% !important;
+      height: 100% !important;
 
-        .message:after {
-            border-left: 3px solid rgb(158, 234, 106);
-            left: 100%;
-        }
+      .happy-scroll-content {
+          width: 100%;
 
-        .message {
-            text-align: left;
-            left: -43px;
-            background-color: rgb(158, 234, 106);
-        }
+          p {
+              font: 12px Extra Small;
+              color: #909399;
+              text-align: center
+          }
+      }
 
-        .addFriend {
-            margin-top: 30px;
-            margin-right: 60px;
-        }
+      .item {
+          position: relative;
+          margin-bottom: 30px;
+
+          .headImg {
+              height: 38px;
+              width: 38px;
+              position: absolute;
+              top: 20px;
+              left: 0;
+          }
+
+          .time {
+              position: absolute;
+              top: 0;
+              left: 50%;
+              transform: translate(-50%, 0);
+              color: #C0C4CC;
+              font: 13px Extra Small;
+          }
+
+          .message:after {
+              border: 3px solid transparent;
+              border-right: 3px solid #FFF;
+              position: absolute;
+              content: "";
+              top: 20px;
+              margin-top: -10px;
+              right: 100%;
+          }
+
+          .message {
+              display: inline-block;
+              border-radius: 4px;
+              box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+              padding: 10px;
+              position: relative;
+              top: 20px;
+              left: 45px;
+              background-color: #FFF;
+              max-width: 50%;
+
+              img {
+                  max-width: 150px;
+              }
+          }
+
+          .addFriend {
+              margin-top: 30px;
+              margin-left: 60px;
+              font: 12px Extra Small;
+          }
+
+          .ar-player {
+              width: 280px;
+              height: 30px;
+              position: relative;
 
 
-        .ar-player {
-            .ar-player-bar {
-                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+              .ar-volume {
+                  display: none;
+              }
 
-                .ar-player__time {
-                    color: black;
-                }
-            }
+              .ar-player-bar {
+                  margin-left: 0;
+                  position: absolute;
+                  left: 0;
+              }
 
-        }
-    }
+              .ar-player-actions {
+                  width: 30px;
+                  height: 30px;
+                  position: absolute;
+                  right: 0;
 
-    .clear:after {
-        content: "";
-        clear: both;
-        display: block;
-    }
-}
+                  .ar-icon {
+                      width: 30px;
+                      height: 30px;
+                  }
+              }
 
-> > > .video-dialog {
-    .el-dialog__header {
-        padding: 5px;
-        text-align: center;
+              svg {
+                  vertical-align: top;
+              }
+          }
 
-        .el-dialog__headerbtn {
-            top: 12px;
-        }
-    }
+      }
 
-    .el-dialog__body {
-        padding: 5px 10px;
-        position: relative;
+      .right {
+          text-align: right;
 
-        div {
-            height: 500px;
-        }
+          .headImg {
+              left: auto;
+              right: 0 !important;
+          }
 
-        #rtcA {
-            width: 750px;
-            height: 500px;
-        }
+          .message:after {
+              border-left: 3px solid rgb(158, 234, 106);
+              left: 100%;
+          }
 
-        #rtcB {
-            width: 350px;
-            height: 200px;
-            position: absolute;
-            top: 5px;
-            right: 10px;
-        }
+          .message {
+              text-align: left;
+              left: -43px;
+              background-color: rgb(158, 234, 106);
+          }
 
-        video::-webkit-media-controls-panel {
-            display: none !important;
-        }
+          .addFriend {
+              margin-top: 30px;
+              margin-right: 60px;
+          }
 
-    }
-}
 
-.voice {
-    position: absolute;
-    top: -30px;
-    left: 20px;
-    right: 20px;
-}
+          .ar-player {
+              .ar-player-bar {
+                  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+                  .ar-player__time {
+                      color: black;
+                  }
+              }
+
+          }
+      }
+
+      .clear:after {
+          content: "";
+          clear: both;
+          display: block;
+      }
+  }
+
+  > > > .video-dialog {
+      .el-dialog__header {
+          padding: 5px;
+          text-align: center;
+
+          .el-dialog__headerbtn {
+              top: 12px;
+          }
+      }
+
+      .el-dialog__body {
+          padding: 5px 10px;
+          position: relative;
+
+          div {
+              height: 500px;
+          }
+
+          #rtcA {
+              width: 750px;
+              height: 500px;
+          }
+
+          #rtcB {
+              width: 350px;
+              height: 200px;
+              position: absolute;
+              top: 5px;
+              right: 10px;
+          }
+
+          video::-webkit-media-controls-panel {
+              display: none !important;
+          }
+
+      }
+  }
+
+  .voice {
+      position: absolute;
+      top: -30px;
+      left: 20px;
+      right: 20px;
+  }
 
 </style>

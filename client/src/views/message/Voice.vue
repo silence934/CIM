@@ -71,6 +71,7 @@ export default {
         },
 
         cancel() {
+            this.rc.pause()
             this.$emit("close")
         }
     },

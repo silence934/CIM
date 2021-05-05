@@ -67,13 +67,12 @@
 <script>
 import centerControl from '../../components/CenterControl'
 import {getCrowd, quitCrowd, updateCrowd} from "@/api/crowd"
-import {quillRedefine} from "vue-quill-editor-upload"
 import {mapGetters} from "vuex"
 import router from "@/router"
 
 export default {
     name: 'group',
-    components: {quillRedefine, centerControl},
+    components: { centerControl},
     data() {
         return {
             crowdList: [],

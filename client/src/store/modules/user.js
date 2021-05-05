@@ -1,5 +1,5 @@
 import {getInfo, login} from '@/api/user'
-import {getToken, getUser, removeToken, removeUser, setToken, setUser} from '@/utils/auth'
+import {getToken, getUser, removeToken, removeUser, setToken, setUser,getRefreshToken,setRefreshToken,removeRefreshToken} from '@/utils/auth'
 import router from "@/router"
 
 const state = {
@@ -46,15 +46,19 @@ const mutations = {
 
 const actions = {
   login({commit}, userInfo) {
-    const {username, password, isAdmin} = userInfo
+    const {username, password} = userInfo
     return new Promise((resolve, reject) => {
-      let data = new FormData
+      let data = new FormData()
       data.append('username', username.trim())
       data.append('password', password)
       data.append('grant_type', 'password')
       data.append('client_id', 'client')
       data.append('client_secret', '123456')
-      login(data).then(() => {
+      login(data).then(response => {
+        const {token, refreshToken} = response.data
+        commit('SET_TOKEN',token)
+        setToken(token)
+        setRefreshToken(refreshToken)
         resolve()
       }).catch(error => {
         reject(error)
@@ -62,7 +66,7 @@ const actions = {
     })
   },
 
-  getInfo({commit, state}) {
+  getInfo({commit}) {
     return new Promise((resolve, reject) => {
       getInfo().then(response => {
         const {data} = response
@@ -88,6 +92,7 @@ const actions = {
       commit('SET_NAME', '')
       commit('SET_ROLE', '')
       removeToken()
+      removeRefreshToken()
       router.push({path: '/login'})
       resolve()
     })
@@ -97,7 +102,30 @@ const actions = {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       removeToken()
+      removeRefreshToken()
       resolve()
+    })
+  },
+
+  refreshToken({commit}) {
+    const refreshToken=getRefreshToken()
+    commit('SET_TOKEN', '')
+    removeToken()
+    return new Promise((resolve, reject) => {
+      let data = new FormData()
+      data.append('refresh_token', refreshToken)
+      data.append('grant_type', 'refresh_token')
+      data.append('client_id', 'client')
+      data.append('client_secret', '123456')
+      login(data).then(response => {
+        const {token, refreshToken} = response.data
+        commit('SET_TOKEN', token)
+        setToken(token)
+        setRefreshToken(refreshToken)
+        resolve(token)
+      }).catch(error => {
+        reject(error)
+      })
     })
   },
 

@@ -1,4 +1,5 @@
 const TokenKey = 'cim_token'
+const refreshTokenKey = 'cim_refresh_token'
 const ChatKey = 'cim_chat_'
 const User = 'cim_user'
 
@@ -12,6 +13,18 @@ export function setToken(token) {
 
 export function removeToken() {
   return localStorage.removeItem(TokenKey)
+}
+
+export function getRefreshToken() {
+  return JSON.parse(localStorage.getItem(refreshTokenKey))
+}
+
+export function setRefreshToken(refreshToken) {
+  return localStorage.setItem(refreshTokenKey, JSON.stringify(refreshToken))
+}
+
+export function removeRefreshToken() {
+  return localStorage.removeItem(refreshTokenKey)
 }
 
 export function getChat(id) {

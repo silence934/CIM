@@ -16,7 +16,7 @@ spring:
         health-check-url: http://${server.address}:${server.port}/actuator/health
   rabbitmq:
     port: 5672
-    host: www.nyist.xyz
+    host: 8.140.141.136
     username: guest
     password: guest
     connection-timeout: 15000
@@ -38,6 +38,8 @@ spring:
   redis:
     host: redis.nyist.com
     port: 6379
+    redisson:
+      config: classpath:redisson-config.yml
     lettuce:
       pool:
         max-active: 8 # 连接池最大连接数

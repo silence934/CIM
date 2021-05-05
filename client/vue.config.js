@@ -36,6 +36,10 @@ module.exports = {
         target: `http://gateway.nyist.xyz:8011`,
         changeOrigin: true
       },
+      ['^/socket.io']: {
+        target: `http://gateway.nyist.xyz:8011`,
+        changeOrigin: true
+      },
       ['^/proxy']: {
         target: `http://gateway.nyist.xyz:8011`,
         changeOrigin: true,

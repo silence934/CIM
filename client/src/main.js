@@ -42,7 +42,7 @@ Vue.filter('formatDate', function (value) {
 
 Vue.use(new VueSocketIO({
   debug: true,
-  connection: 'http://native.cn:8011',
+  connection: '',
   vuex: {
     store,
     actionPrefix: 'SOCKET_',

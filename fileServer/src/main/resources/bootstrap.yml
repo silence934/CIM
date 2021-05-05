@@ -15,7 +15,7 @@ spring:
         port: ${server.port}        #注册服务所在端口
   rabbitmq:
     port: 5672
-    host: www.nyist.xyz
+    host: rabbitmq.nyist.com
     username: guest
     password: guest
     connection-timeout: 15000
