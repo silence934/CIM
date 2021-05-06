@@ -3,7 +3,6 @@ package xyz.nyist.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import xyz.nyist.component.UserContext;
 import xyz.nyist.entity.FriendEntity;
 import xyz.nyist.entity.GroupEntity;
 import xyz.nyist.entity.UserEntity;
@@ -23,8 +22,6 @@ public class FriendService {
     @Autowired
     private FriendRepository friendRepository;
     @Autowired
-    private UserContext userContext;
-    @Autowired
     private UserService userService;
     @Autowired
     private GroupService groupService;
@@ -32,6 +29,10 @@ public class FriendService {
     public FriendEntity getById(Integer id) {
         return friendRepository.findById(id)
                 .orElseThrow(() -> new CimException(ResultCode.SYSTEM_RESOURCE_ERROR, "朋友[id:%s]不存在", id));
+    }
+
+    public FriendEntity getFriend(UserEntity user1,UserEntity user2){
+        return friendRepository.getByUser(user1,user2);
     }
 
     public void create(Integer userId1, Integer userId2, String remark1, String remark2, Integer groupId1, Integer groupId2) {

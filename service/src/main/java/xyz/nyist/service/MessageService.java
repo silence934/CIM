@@ -17,6 +17,8 @@ import xyz.nyist.exception.CimException;
 import xyz.nyist.repository.CrowdUserRepository;
 import xyz.nyist.repository.MessageRepository;
 import xyz.nyist.result.ResultCode;
+import xyz.nyist.utils.JsonUtil;
+import xyz.nyist.vo.UserVO;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,6 +43,9 @@ public class MessageService {
     @Autowired
     private CrowdService crowdService;
 
+    private static final Sort TIME_DESC_SORT = Sort.by(Sort.Direction.DESC, "time");
+
+
     public void create(MessageEntity messageEntity) {
         messageEntity.setStatus(MessageStatus.UN_READ);
         messageRepository.saveAndFlush(messageEntity);
@@ -56,16 +61,25 @@ public class MessageService {
         Integer type = map.get("type");
         int page = map.get("page") - 1;
         int size = map.get("size");
-        Sort sort = Sort.by(Sort.Direction.DESC, "time");
 
         if (from > 9999 || to > 9999) {
             //群消息
-            return messageRepository.findAllByTo(Math.max(from, to), Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND), PageRequest.of(page, size, sort));
+            return messageRepository.findAllByTo(Math.max(from, to), Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND), PageRequest.of(page, size, TIME_DESC_SORT));
         } else if (Objects.equals(type, 1)) {
             //验证消息
-            return messageRepository.findAllByPageAndTypeIn(from, to, Arrays.asList(MessageType.ADD_FRIEND), PageRequest.of(page, size, sort));
+            Page<MessageEntity> messageEntityPage = messageRepository.findAllByPageAndTypeIn(from,
+                    Collections.singletonList(MessageType.ADD_FRIEND),
+                    PageRequest.of(page, size, TIME_DESC_SORT));
+            messageEntityPage.getContent().forEach(message->{
+                UserEntity user = userService.getById(message.getFrom());
+                Map<String,Object> objectMap=new HashMap<>(3);
+                objectMap.put("user", UserVO.forValue(user));
+                objectMap.put("verify",message.getOther());
+                message.setOther(JsonUtil.obj2String(objectMap));
+            });
+            return messageEntityPage;
         } else {
-            return messageRepository.findAllByPageAndTypeNotIn(from, to, Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND), PageRequest.of(page, size, sort));
+            return messageRepository.findAllByPageAndTypeNotIn(from, to, Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND), PageRequest.of(page, size, TIME_DESC_SORT));
         }
     }
 

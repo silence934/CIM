@@ -25,7 +25,6 @@ service.interceptors.request.use(
 )
 
 service.interceptors.response.use(response => {
-    console.log(response)
     const data = response.data
     if (response.headers['content-type'] === 'application/octet-stream') {
       return response

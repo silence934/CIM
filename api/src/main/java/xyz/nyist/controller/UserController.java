@@ -8,14 +8,11 @@ import xyz.nyist.dto.UserRegisterDTO;
 import xyz.nyist.dto.UserUpdateDTO;
 import xyz.nyist.dto.VerificationCodeDTO;
 import xyz.nyist.entity.CrowdEntity;
+import xyz.nyist.entity.FriendEntity;
 import xyz.nyist.entity.UserEntity;
 import xyz.nyist.result.Result;
-import xyz.nyist.service.ApiUserService;
-import xyz.nyist.service.CrowdService;
-import xyz.nyist.service.RetrievePasswordService;
-import xyz.nyist.service.UserService;
-import xyz.nyist.vo.FindFriendUserVO;
-import xyz.nyist.vo.UserVO;
+import xyz.nyist.service.*;
+import xyz.nyist.vo.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +35,8 @@ public class UserController {
     @Autowired
     private CrowdService crowdService;
     @Autowired
+    private FriendService friendService;
+    @Autowired
     private RetrievePasswordService retrievePasswordService;
 
     @GetMapping("/info")
@@ -50,12 +49,20 @@ public class UserController {
         return Result.success(UserVO.forValue(userService.getById(id)));
     }
 
-    @PostMapping("/select/details/list")
-    public Result<List<UserVO>> getDetailsList(@RequestBody List<Integer> ids) {
-        List<UserVO> list = userService.getByIds(ids).stream()
-                .map(UserVO::forValue).collect(Collectors.toList());
+    @PostMapping("/select/chatsInfo")
+    public Result<List<ChatSubjectVo>> getDetailsList(@RequestBody List<Integer> ids) {
+
+        UserEntity currentUser = userContext.getCurrentUser();
+
+        List<ChatSubjectVo> list = userService.getByIds(ids).stream()
+                .map(user->{
+                    FriendEntity friend = friendService.getFriend(currentUser, user);
+                    return UserChatSubjectVo.forValue(user,friend);
+                }).collect(Collectors.toList());
+
+
         list.addAll(crowdService.getByIds(ids).stream()
-                .map(UserVO::forValue).collect(Collectors.toList()));
+                .map(CrowChatSubjectVo::forValue).collect(Collectors.toList()));
         return Result.success(list);
     }
 

@@ -7,33 +7,32 @@ const state = {
 }
 
 const mutations = {
-  INIT: (state, id) => {
-    state.user_id = id
-    state.list = getChat(id) || []
-  },
-  SET_LIST: (state, list) => {
-    state.list = list
-    setChat(list, state.user_id)
-  },
-  ADD_LIST: (state, item) => {
-    //去除旧消息
-    if (item.type === 'ADD_FRIEND') {
-      state.list = state.list.filter(e => !(e.id === item.id && e.type === "ADD_FRIEND"))
-    } else {
-      state.list = state.list.filter(e => !(e.id === item.id && e.type !== "ADD_FRIEND"))
-    }
-    //添加新消息
-    state.list.push(item)
-    setChat(state.list, state.user_id)
-  },
-  UPDATE_LIST: (state, item) => {
-    state.list.map(i => i.id === item.id && (
-      item.type === i.type || ((item.type !== 'ADD_FRIEND') && i.type !== 'ADD_FRIEND')) ? compare(item, i) : i)
-    setChat(state.list, state.user_id)
-  },
-  UPDATE_ONLINE_USER: (state, data) => {
-    state.onlineUser = data
-  }
+    INIT: (state, id) => {
+      state.user_id = id
+      state.list = getChat(id) || []
+    },
+    SET_LIST: (state, list) => {
+      state.list = list
+      setChat(list, state.user_id)
+    },
+    DELETE_LIST:(state, item)=>{
+        state.list = state.list.filter(e => !(e.id === item.id))
+        setChat(state.list, state.user_id)
+    },
+    ADD_LIST: (state, item) => {
+      //去除旧消息
+      state.list = state.list.filter(e => !(e.id === item.id))
+      //添加新消息
+      state.list.unshift(item)
+      setChat(state.list, state.user_id)
+    },
+    UPDATE_LIST: (state, item) => {
+      state.list.map(i => i.id === item.id ? compare(item, i) : i)
+      setChat(state.list, state.user_id)
+    },
+    UPDATE_ONLINE_USER: (state, data) => {
+      state.onlineUser = data
+    },
 }
 
 function compare(item, i) {
@@ -58,6 +57,10 @@ const actions = {
 
   updateList({commit}, item) {
     commit('UPDATE_LIST', item)
+  },
+
+  deleteList({commit}, item) {
+    commit('DELETE_LIST', item)
   },
 
   updateOnlineUser({commit}, data) {

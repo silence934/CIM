@@ -171,7 +171,7 @@ export default {
                 from: this.userId,
                 to: this.user.id,
                 time: moment().format('YYYY-MM-DD HH:mm:ss'),
-                data: '请求添加好友  </br>' + (this.addFriend.verify || ''),
+                data: (this.addFriend.verify || ''),
                 type: 'ADD_FRIEND',
                 other: this.addFriend.remark + "-" + this.addFriend.group
             }

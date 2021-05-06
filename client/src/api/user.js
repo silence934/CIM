@@ -48,9 +48,9 @@ export function getAvatar(params) {
   })
 }
 
-export function getUsersInfo(data) {
+export function getChatsInfo(data) {
   return request({
-    url: '/api-v1/user/select/details/list',
+    url: '/api-v1/user/select/chatsInfo',
     method: 'post',
     data
   })

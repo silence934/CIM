@@ -26,9 +26,12 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Integer>
 
     @Query(value = "select t from MessageEntity t where " +
             "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) " +
-            "and t.type  in :notIn ")
-    Page<MessageEntity> findAllByPageAndTypeIn(Integer from, Integer to, Collection<MessageType> notIn, Pageable page);
+            "and t.type  in :in ")
+    Page<MessageEntity> findAllByPageAndTypeIn(Integer from, Integer to, Collection<MessageType> in, Pageable page);
 
+
+    @Query(value = "select t from MessageEntity t where  t.to=:from and t.type  in :in ")
+    Page<MessageEntity> findAllByPageAndTypeIn(Integer from, Collection<MessageType> in, Pageable page);
 
     @Query(value = "select t from MessageEntity t where " +
             "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) and t.status='UN_READ' and t.time<=:time ")
