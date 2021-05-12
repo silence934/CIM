@@ -5,7 +5,8 @@
                 <i class="el-icon-s-operation"></i>
             </div>
             <div style="position: relative;float:left" @click="dialogVisible1=true">
-                <img style="height: 40px;width: 40px;-webkit-border-radius: 50%;margin-right: 10px" :src="avatar" alt="">
+                <el-image style="height: 40px;width: 40px;-webkit-border-radius: 50%;margin-right: 10px"
+                          :src="avatar" alt=""/>
             </div>
             <div style="line-height: 1.6;overflow: hidden;">
                 <h3 style="margin: 0">{{ name }}</h3>
@@ -85,7 +86,6 @@ export default {
                 }
             })
         },
-
     }
 }
 </script>

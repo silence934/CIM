@@ -17,8 +17,7 @@ import xyz.nyist.exception.CimException;
 import xyz.nyist.repository.CrowdUserRepository;
 import xyz.nyist.repository.MessageRepository;
 import xyz.nyist.result.ResultCode;
-import xyz.nyist.utils.JsonUtil;
-import xyz.nyist.vo.UserVO;
+import xyz.nyist.vo.MessageVO;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,31 +54,48 @@ public class MessageService {
         return messageRepository.findById(id).orElseThrow(() -> new CimException(ResultCode.SYSTEM_RESOURCE_ERROR, "消息[id%d]不存在", id));
     }
 
-    public Page<MessageEntity> getMessageByPage(Map<String, Integer> map) {
+    public Page<MessageVO> getMessageByPage(Map<String, Integer> map) {
         Integer from = map.get("from");
         Integer to = map.get("to");
         Integer type = map.get("type");
         int page = map.get("page") - 1;
         int size = map.get("size");
 
+        Page<MessageEntity> messageEntityPage;
         if (from > 9999 || to > 9999) {
             //群消息
-            return messageRepository.findAllByTo(Math.max(from, to), Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND), PageRequest.of(page, size, TIME_DESC_SORT));
+             messageEntityPage= messageRepository.findAllByTo(
+                    Math.max(from, to),
+                    Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND),
+                    PageRequest.of(page, size, TIME_DESC_SORT));
+
+           return messageEntityPage.map(MessageVO::forValue);
         } else if (Objects.equals(type, 1)) {
             //验证消息
-            Page<MessageEntity> messageEntityPage = messageRepository.findAllByPageAndTypeIn(from,
+
+             messageEntityPage = messageRepository.findAllByPageAndTypeIn(
+                     from,
                     Collections.singletonList(MessageType.ADD_FRIEND),
                     PageRequest.of(page, size, TIME_DESC_SORT));
-            messageEntityPage.getContent().forEach(message->{
-                UserEntity user = userService.getById(message.getFrom());
-                Map<String,Object> objectMap=new HashMap<>(3);
-                objectMap.put("user", UserVO.forValue(user));
-                objectMap.put("verify",message.getOther());
-                message.setOther(JsonUtil.obj2String(objectMap));
+
+            List<Integer> ids = messageEntityPage.getContent().stream().map(MessageEntity::getFrom)
+                    .collect(Collectors.toList());
+
+            Map<Integer,UserEntity> userMap=new HashMap<>(ids.size()+1,1);
+            userService.getByIds(ids).forEach(u->{
+                userMap.put(u.getId(),u);
             });
-            return messageEntityPage;
+
+            return messageEntityPage.map(msg->MessageVO.forValue(msg,userMap.get(msg.getFrom()),null));
         } else {
-            return messageRepository.findAllByPageAndTypeNotIn(from, to, Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND), PageRequest.of(page, size, TIME_DESC_SORT));
+
+            messageEntityPage = messageRepository.findAllByPageAndTypeNotIn(
+                    from,
+                    to,
+                    Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND),
+                    PageRequest.of(page, size, TIME_DESC_SORT));
+
+            return messageEntityPage.map(MessageVO::forValue);
         }
     }
 

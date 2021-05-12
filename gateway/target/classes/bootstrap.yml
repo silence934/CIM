@@ -57,7 +57,9 @@ spring:
             - Path=/socket.io/**,
           filters:
             - StripPrefix=0
-
+#    loadbalancer:
+#      ribbon:
+#        enabled: false
 
 white-list:
   urls:

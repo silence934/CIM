@@ -18,6 +18,7 @@ module.exports = {
   lintOnSave: false,
   productionSourceMap: false,
   devServer: {
+    disableHostCheck: true,
     port: port,
     open: false,
     overlay: {
@@ -33,22 +34,22 @@ module.exports = {
         }
       },
       ['^/api-v1']: {
-        target: `http://gateway.nyist.xyz:8011`,
+        target: `https://www.nyist.xyz:8011`,
         changeOrigin: true
       },
       ['^/socket.io']: {
-        target: `http://gateway.nyist.xyz:8011`,
+        target: `https://www.nyist.xyz`,
         changeOrigin: true
       },
       ['^/proxy']: {
-        target: `http://gateway.nyist.xyz:8011`,
+        target: `https://www.nyist.xyz:8011`,
         changeOrigin: true,
         pathRewrite: {
           ['^/proxy']: ''
         }
       },
       ['^/cim-artifact']: {
-        target: `http://gateway.nyist.xyz:8011`,
+        target: `https://www.nyist.xyz:8011`,
         changeOrigin: true,
         pathRewrite: {
           ['^/cim-artifact']: '/api-v1/artifact/cim-artifact'

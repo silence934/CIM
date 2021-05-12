@@ -27,29 +27,29 @@ import Moment from 'moment'
 import AudioRecorder from 'vue-audio-recorder'
 
 Vue.filter('formatDate', function (value) {
-  Moment.locale('zh-cn')
-  let differDay = Moment(Moment().format('YYYY-MM-DD')).diff(Moment(value).format('YYYY-MM-DD'), 'days')
-  if (differDay === 1) {
-    return '昨天'
-  } else if (differDay === 0) {
-    return Moment(value).format('HH:mm:ss')
-  } else if (differDay <= 7) {
-    return Moment(value).format('dddd')
-  } else {
-    return Moment(value).format('YYYY-MM-DD')
-  }
+    Moment.locale('zh-cn')
+    let differDay = Moment(Moment().format('YYYY-MM-DD')).diff(Moment(value).format('YYYY-MM-DD'), 'days')
+    if (differDay === 1) {
+        return '昨天'
+    } else if (differDay === 0) {
+        return Moment(value).format('HH:mm:ss')
+    } else if (differDay <= 7) {
+        return Moment(value).format('dddd')
+    } else {
+        return Moment(value).format('YYYY-MM-DD')
+    }
 })
 
 Vue.use(new VueSocketIO({
-  debug: true,
-  connection: '',
-  vuex: {
-    store,
-    actionPrefix: 'SOCKET_',
-    mutationPrefix: 'SOCKET_'
-  },
-  options: {path: '', autoConnect: true},
-  query: {userName: 'admin'}
+    debug: true,
+    connection: '',
+    vuex: {
+        store,
+        actionPrefix: 'SOCKET_',
+        mutationPrefix: 'SOCKET_'
+    },
+    options: {path: '', autoConnect: true},
+    query: {userName: 'admin'}
 }))
 Vue.use(VueQuillEditor)
 Vue.use(AudioRecorder)
@@ -58,15 +58,15 @@ Vue.use(AudioRecorder)
 Vue.component('happy-scroll', HappyScroll)
 
 if (process.env.NODE_ENV === 'production') {
-  mockXHR()
+    mockXHR()
 }
 Vue.use(ElementUI, {locale})
 
 Vue.config.productionTip = false
 
 new Vue({
-  el: '#app',
-  router,
-  store,
-  render: h => h(App)
+    el: '#app',
+    router,
+    store,
+    render: h => h(App)
 })

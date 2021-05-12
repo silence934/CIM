@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "whitelist",
+      "type": "xyz.nyist.configs.WhiteListConfig",
+      "sourceType": "xyz.nyist.configs.WhiteListConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "white-list.urls",
+      "type": "java.lang.String",
+      "description": "Description for white-list.urls."
+    },
+    {
+      "name": "whitelist.urls",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "xyz.nyist.configs.WhiteListConfig"
+    }
+  ],
+  "hints": []
+}

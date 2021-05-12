@@ -30,15 +30,10 @@
             <div v-for="(item,index) in msgList"
                  :key="index"
                  class="item">
-                <div v-show="false">
-                    {{
-                        other=item.other?JSON.parse(item.other):{user:{avatar:''},}
-                    }}
-                </div>
                 <span style="position: absolute;top: -10px;font: 12px Extra Small">{{item.time}}</span>
-                <el-image class="headImg" :src="other.user.avatar"/>
+                <el-image v-if="item.fromUser" class="headImg" :src="item.fromUser.avatar"/>
                 <div style="position: absolute;top: 15px;left: 80px;width: 200px">
-                    <h3 style="margin: 0 0 3px 0">{{other.user.nickname||other.user.username}}</h3>
+                    <h3 v-if="item.fromUser" style="margin: 0 0 3px 0">{{item.fromUser.nickname||item.fromUser.username}}</h3>
                     <span style="font: 13px Small">{{item.data}}</span>
                 </div>
                 <div style="position: absolute;top: 25px;left: 300px;" v-if="(item.status!=='ACCEPT'&&item.status!=='REJECT')">
@@ -93,13 +88,31 @@ export default {
         },
         msgList:{
             type:Array,
-            default:[]
+            default:[{data: '',
+                from: 0,
+                isRead: false,
+                status: '',
+                time: '',
+                to: 0,
+                type: '',
+                fromUser:{
+                    avatar: '',
+                    id: 0,
+                    mail: '',
+                    nickname: '',
+                    phone: '',
+                    sex: '',
+                    username: ''
+                }
+            }]
         }
     },
     sockets: {
         getChat(messageList) {
-            if (messageList[0].type!=='ADD_FRIEND'){
+            if (messageList.content.length>0&&messageList.content[0].type!=='ADD_FRIEND'){
                 messageList = messageList.content.reverse()
+            }else {
+                messageList = messageList.content
             }
             //获取聊天记录有四种情况  当前是否已存在消息(判断是第一次获取消息还是上拉获取消息)  获取的是否有消息  组合
             this.loadingMessage = false
@@ -297,8 +310,8 @@ export default {
                 box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
                 padding: 10px;
                 position: relative;
-                top: 20px;
-                left: 45px;
+                top: 28px;
+                left: 48px;
                 background-color: #FFF;
                 max-width: 50%;
 

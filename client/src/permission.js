@@ -27,15 +27,11 @@ router.beforeEach(async (to, from, next) => {
     } else {
       const hasRoles = store.getters.roles && store.getters.roles.length > 0
       const hasGetUserInfo = store.getters.name
-      if (store.getters.userId) {
+      if (hasGetUserInfo) {
         next()
       } else {
         try {
           const data = await store.dispatch('user/getInfo')
-          if (data.firstLogin) {
-            next(`/info`)
-            return
-          }
           await store.dispatch('chat/init', data.id)
           //const accessRoutes = await store.dispatch('permission/generateRoutes', data.roles.map(i => i.name))
           // router.addRoutes(accessRoutes)

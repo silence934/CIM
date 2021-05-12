@@ -91,6 +91,7 @@ const actions = {
       commit('SET_TOKEN', '')
       commit('SET_NAME', '')
       commit('SET_ROLE', '')
+      commit('SET_AVATAR', '')
       removeToken()
       removeRefreshToken()
       router.push({path: '/login'})
