@@ -48,7 +48,7 @@ Vue.use(new VueSocketIO({
         actionPrefix: 'SOCKET_',
         mutationPrefix: 'SOCKET_'
     },
-    options: {path: '', autoConnect: true},
+    options: {path: '', autoConnect: true, transports: ['websocket']},
     query: {userName: 'admin'}
 }))
 Vue.use(VueQuillEditor)
