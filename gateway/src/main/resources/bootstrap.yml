@@ -1,10 +1,10 @@
 server:
   address: www.nyist.xyz
-  ssl:
-    key-store: classpath:www.nyist.xyz.pfx
-    key-store-type: PKCS12
-    enabled: true
-    key-store-password: fc2998820...
+#  ssl:
+#    key-store: classpath:www.nyist.xyz.pfx
+#    key-store-type: PKCS12
+#    enabled: false
+#    key-store-password: fc2998820...
 
 spring:
   security:
@@ -23,7 +23,7 @@ spring:
         prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
         healthCheckInterval: 5s     #健康检查频率
         port: ${server.port}        #注册服务所在端口
-        health-check-url: https://${server.address}:${server.port}/actuator/health
+        health-check-url: http://${server.address}:${server.port}/actuator/health
     gateway:
       discovery:
         locator:
@@ -52,9 +52,9 @@ spring:
             - StripPrefix=1
 
         - id: socket
-          uri: hs:https://cim-socket
+          uri: lb://cim-socket
           predicates:
-            - Path=/socket.io/**,
+            - Path=/socket.io/**
           filters:
             - StripPrefix=0
 

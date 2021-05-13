@@ -4,7 +4,6 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
-import io.netty.handler.codec.http.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 import xyz.nyist.constant.RedisKey;
 
 import javax.annotation.PreDestroy;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,16 +52,15 @@ public class NettySocketIoConfig implements CommandLineRunner {
         config.setWorkerThreads(100);
         //身份验证
         config.setAuthorizationListener(handshakeData -> {
-            HttpHeaders httpHeaders = handshakeData.getHttpHeaders();
             System.out.println(handshakeData.getHttpHeaders());
             return true;
         });
         config.setHostname(address);
         config.setPort(port);
 
-        config.setKeyStorePassword("fc2998820...");
+       /* config.setKeyStorePassword("fc2998820...");
         InputStream stream = this.getClass().getResourceAsStream("/www.nyist.xyz.jks");
-        config.setKeyStore(stream);
+        config.setKeyStore(stream);*/
 
         return new SocketIOServer(config);
     }

@@ -42,7 +42,8 @@ Vue.filter('formatDate', function (value) {
 
 Vue.use(new VueSocketIO({
     debug: true,
-    connection: '',
+    //https://www.nyist.xyz:8006
+    connection: 'http://192.168.31.246:8011',
     vuex: {
         store,
         actionPrefix: 'SOCKET_',
