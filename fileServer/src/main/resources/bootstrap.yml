@@ -1,5 +1,5 @@
 server:
-  address: native.cn
+  address: www.nyist.xyz
 
 spring:
   application:
@@ -55,7 +55,7 @@ spring:
         format_sql: true
         enable_lazy_load_no_trans: true
 
-file-path: D:\cim
+file-path: E:\cim
 
 logging:
   level:

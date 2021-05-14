@@ -16,7 +16,6 @@ import VueQuillEditor from 'vue-quill-editor'
 import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
-import {mockXHR} from '../mock'
 
 import VueSocketIO from 'vue-socket.io'
 import {HappyScroll} from 'vue-happy-scroll'
@@ -57,9 +56,7 @@ Vue.use(AudioRecorder)
 //自定义组件名
 Vue.component('happy-scroll', HappyScroll)
 
-if (process.env.NODE_ENV === 'production') {
-    mockXHR()
-}
+
 Vue.use(ElementUI, {locale})
 
 Vue.config.productionTip = false

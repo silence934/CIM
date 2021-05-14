@@ -1,5 +1,5 @@
 server:
-  address: native.cn
+  address: www.nyist.xyz
 
 spring:
   application:
