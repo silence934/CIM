@@ -64,29 +64,29 @@ public class MessageService {
         Page<MessageEntity> messageEntityPage;
         if (from > 9999 || to > 9999) {
             //群消息
-             messageEntityPage= messageRepository.findAllByTo(
+            messageEntityPage = messageRepository.findAllByTo(
                     Math.max(from, to),
                     Arrays.asList(MessageType.LOGIN, MessageType.VIDEO, MessageType.ADD_FRIEND),
                     PageRequest.of(page, size, TIME_DESC_SORT));
 
-           return messageEntityPage.map(MessageVO::forValue);
+            return messageEntityPage.map(MessageVO::forValue);
         } else if (Objects.equals(type, 1)) {
             //验证消息
 
-             messageEntityPage = messageRepository.findAllByPageAndTypeIn(
-                     from,
+            messageEntityPage = messageRepository.findAllByPageAndTypeIn(
+                    from,
                     Collections.singletonList(MessageType.ADD_FRIEND),
                     PageRequest.of(page, size, TIME_DESC_SORT));
 
             List<Integer> ids = messageEntityPage.getContent().stream().map(MessageEntity::getFrom)
                     .collect(Collectors.toList());
 
-            Map<Integer,UserEntity> userMap=new HashMap<>(ids.size()+1,1);
-            userService.getByIds(ids).forEach(u->{
-                userMap.put(u.getId(),u);
+            Map<Integer, UserEntity> userMap = new HashMap<>(ids.size() + 1, 1);
+            userService.getByIds(ids).forEach(u -> {
+                userMap.put(u.getId(), u);
             });
 
-            return messageEntityPage.map(msg->MessageVO.forValue(msg,userMap.get(msg.getFrom()),null));
+            return messageEntityPage.map(msg -> MessageVO.forValue(msg, userMap.get(msg.getFrom()), null));
         } else {
 
             messageEntityPage = messageRepository.findAllByPageAndTypeNotIn(
@@ -124,10 +124,15 @@ public class MessageService {
                         crowdUserEntity.setUpTo(tagMessage.getTime());
                         crowdUserRepository.saveAndFlush(crowdUserEntity);
                     });
+        } else if (tagMessage.getType().equals(MessageType.ADD_FRIEND)) {
+            //验证消息
+            List<MessageEntity> messages = messageRepository.findVerifyMessageByTime(from, tagMessage.getTime());
+            messages.forEach(m -> m.setRead(true));
+            messageRepository.saveAll(messages);
         } else {
             //好友消息
             List<MessageEntity> messages = messageRepository.findAllByTime(from, to, tagMessage.getTime());
-            messages.forEach(m -> m.setStatus(MessageStatus.HAVE_READ));
+            messages.forEach(m -> m.setRead(true));
             messageRepository.saveAll(messages);
         }
 

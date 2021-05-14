@@ -34,8 +34,12 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Integer>
     Page<MessageEntity> findAllByPageAndTypeIn(Integer from, Collection<MessageType> in, Pageable page);
 
     @Query(value = "select t from MessageEntity t where " +
-            "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) and t.status='UN_READ' and t.time<=:time ")
+            "((t.from = :from  and t.to=:to) or (t.from = :to  and t.to=:from)) and t.isRead=false and t.time<=:time ")
     List<MessageEntity> findAllByTime(Integer from, Integer to, LocalDateTime time);
+
+    @Query(value = "select t from MessageEntity t where " +
+            "t.to = :to and t.type='ADD_FRIEND' and t.isRead=false and t.time<=:time ")
+    List<MessageEntity> findVerifyMessageByTime(Integer to, LocalDateTime time);
 
     @Query(value = "select t from MessageEntity t where t.to=:to and t.type not in :notIn ")
     Page<MessageEntity> findAllByTo(Integer to, Collection<MessageType> notIn, Pageable page);
@@ -44,6 +48,6 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Integer>
     @Query(value = "select t from MessageEntity t where t.to=:crowdId and t.time>:time ")
     List<MessageEntity> getUnReadMessageWithCrowd(Integer crowdId, LocalDateTime time);
 
-    @Query(value = "select t from MessageEntity t where t.to=:userId  and t.status='UN_READ' ")
+    @Query(value = "select t from MessageEntity t where t.to=:userId  and t.isRead=false ")
     List<MessageEntity> getUnReadMessageWithFriend(Integer userId);
 }

@@ -3,15 +3,15 @@
         <audio muted ref="audio" loop="loop" src="@/assets/video.wav"/>
 
         <centerControl style="position: relative;left: 0">
-            <char-list :defaultActive="defaultActive"  @open="open"></char-list>
+            <char-list :defaultActive="defaultActive" @open="open"></char-list>
         </centerControl>
 
-        <el-main class="main" >
+        <el-main class="main">
             <el-header style="height: 30px">
                 {{ nowActive.remark || nowActive.nickname || nowActive.username }}
                 <el-divider/>
             </el-header>
-            <el-main  style="height: calc(100% - 30px);padding: 0">
+            <el-main style="height: calc(100% - 30px);padding: 0">
                 <message-list ref="messageList"
                               :msgList="msgList"
                               :nowActive="nowActive"/>
@@ -24,10 +24,10 @@
 
         <el-footer v-if="nowActive.id&&nowActive.type!=='ADD_FRIEND'">
             <quill-editor
-                    @keyup.enter.native="send"
-                    v-model="input"
-                    ref="myQuillEditor"
-                    :options="editorOption"/>
+                @keyup.enter.native="send"
+                v-model="input"
+                ref="myQuillEditor"
+                :options="editorOption"/>
             <div v-if="nowActive.id<10000">
                 <button type="button" class="ql-underline video" @click="isVideo=true;video()">
                     <i class="el-icon-video-camera "></i>
@@ -92,25 +92,26 @@
 <script>
 import {mapGetters} from 'vuex'
 import moment from 'moment'
-import {addFriend, getDetails, getGroup} from '@/api/user'
 import {getCrowdInfo} from "@/api/crowd"
 import centerControl from '../../components/CenterControl'
 import VideoAndVoice from "@/views/message/VideoAndVoice"
 import Voice from "./Voice"
 import AudioPlayer from "./AudioPlayer"
 
-import { Quill} from 'vue-quill-editor'
-import { ImageExtend, QuillWatch} from 'quill-image-extend-module'
+import {Quill} from 'vue-quill-editor'
+import {ImageExtend, QuillWatch} from 'quill-image-extend-module'
 import quillEmoji from 'quill-emoji'
 import 'quill-emoji/dist/quill-emoji.css'
 import CharList from "@/views/message/CharList";
 import MessageList from "@/views/message/MessageList";
+import {getDetails} from "@/api/user";
+
 Quill.register('modules/quillEmoji', quillEmoji)
 Quill.register('modules/ImageExtend', ImageExtend)
 
 export default {
     name: 'index',
-    components: {MessageList, CharList, Voice, VideoAndVoice, centerControl,AudioPlayer},
+    components: {MessageList, CharList, Voice, VideoAndVoice, centerControl, AudioPlayer},
     sockets: {
         async receiveEvent(message) {
             let newChat = this.messageToChat(message);
@@ -152,15 +153,16 @@ export default {
             } else {
                 if (newChat.id === parseInt(this.nowActive.id)) {
                     this.msgList.push(message)
+                    this.$refs.messageList.scrollToBottom()
                     await this.$store.dispatch('chat/updateList', newChat)
                 } else {
                     let chat = this.chat.filter(i => i.id === newChat.id)
                     if (chat.length === 0) {
-                        if (newChat.type==='ADD_FRIEND'){
+                        if (newChat.type === 'ADD_FRIEND') {
                             newChat.avatar = require('@/assets/bell.png')
                             newChat.badge = 1
                             newChat.nickname = '新朋友'
-                        }else {
+                        } else {
                             await getDetails({id: newChat.id}).then(res => {
                                 newChat.avatar = res.data.avatar
                                 newChat.badge = 1
@@ -179,7 +181,7 @@ export default {
     },
     data() {
         return {
-            defaultActive:'',
+            defaultActive: '',
             nowActive: {},
             nickname: '',
             input: '',
@@ -239,19 +241,19 @@ export default {
             this.$socket.emit('sendEvent', msg)
         },
         open(item) {
-            if (this.nowActive.id !== item.id ) {
+            if (this.nowActive.id !== item.id) {
                 this.active(item)
-                this.$nextTick(()=>{
+                this.$nextTick(() => {
                     this.$refs.messageList.getMsgList()
                 })
             }
-            this.tagMessage();
+            this.tagMessage(item);
         },
         send(type) {
             if (this.input) {
                 this.input = this.input.replace(/<p>/g, '')
                 this.input = this.input.replace(/<\/p>/g, '')
-                if (!type||typeof type!=="string") {
+                if (!type || typeof type !== "string") {
                     type = (this.input.indexOf('<img src=') === -1 ? 'GENERAL' : 'IMG')
                 }
 
@@ -262,7 +264,7 @@ export default {
                     to: parseInt(this.nowActive.id),
                     time: time,
                     data: this.input,
-                    type: type?type:'GENERAL',
+                    type: type ? type : 'GENERAL',
                     showTime: this.msgList.length === 0 || !moment(time).diff(moment(this.msgList[this.msgList.length - 1].time), 'minutes') < 1
                 }
 
@@ -294,11 +296,11 @@ export default {
                         id: parseInt(this.userData.id),
                         type: 'GENERAL'
                     }
-                    console.log("chatListHasUser",chatListHasUser)
+                    console.log("chatListHasUser", chatListHasUser)
                     this.$store.dispatch('chat/addList', chatListHasUser)
                 }
-                this.defaultActive=''+chatListHasUser.id
-                this.$router.push({ query: {} });
+                this.defaultActive = '' + chatListHasUser.id
+                this.$router.push({query: {}});
             }
         },
         messageSwitch(message) {
@@ -313,7 +315,6 @@ export default {
                 return a.substring(0, 7) + (a.length > 7 ? '...' : '')
             }
         },
-
         video() {
             this.sendMessage('VIDEO', 'request')
             this.dialogVideo = true
@@ -350,8 +351,9 @@ export default {
                 this.crowdInfo = res.data
             })
         },
-        tagMessage() {
+        tagMessage(message) {
             let data = {
+                type: message.type,
                 from: this.userId,
                 to: parseInt(this.nowActive.id),
                 time: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -360,21 +362,21 @@ export default {
         },
         messageToChat(message) {
             let id
-            if (message.type==='ADD_FRIEND'){
-                id=-1
+            if (message.type === 'ADD_FRIEND') {
+                id = -1
             } else if (message.to === this.userId) {
-                id=message.from
+                id = message.from
             } else {
-                id=message.to
+                id = message.to
             }
             return {id: id, type: message.type, time: message.time, msg: this.messageSwitch(message)}
         },
         sendVideoInfo(data, type) {
             this.input = data
-            if (type){
-              this.send(type)
-            }else {
-              this.send()
+            if (type) {
+                this.send(type)
+            } else {
+                this.send()
             }
         },
         acceptVideo() {
@@ -393,47 +395,47 @@ export default {
             this.dialogRequest = false
             this.sendMessage('VIDEO', 'reject')
         },
-        compareChat(chat){
-            if (chat.id === parseInt(this.nowActive.id)){
-                if (chat.type==='ADD_FRIEND'){
-                    return this.nowActive.type==='ADD_FRIEND'
-                }else {
-                    return this.nowActive.type!=='ADD_FRIEND'
+        compareChat(chat) {
+            if (chat.id === parseInt(this.nowActive.id)) {
+                if (chat.type === 'ADD_FRIEND') {
+                    return this.nowActive.type === 'ADD_FRIEND'
+                } else {
+                    return this.nowActive.type !== 'ADD_FRIEND'
                 }
             }
-           return  false
+            return false
         }
     },
     created() {
         this.init()
-        this.editorOption={
+        this.editorOption = {
             placeholder: '请输入内容',
             modules: {
-              ImageExtend: {
-                loading: true,
-                size: 3,
-                name: 'file',
-                action: '/api-v1/artifact/upload',
-                methods: 'POST',
-                response: (res) => {
-                  return '/proxy/api-v1/artifact' + res.data.path
+                ImageExtend: {
+                    loading: true,
+                    size: 3,
+                    name: 'file',
+                    action: '/api-v1/artifact/upload',
+                    methods: 'POST',
+                    response: (res) => {
+                        return '/proxy/api-v1/artifact' + res.data.path
+                    },
+                    change: (xhr, formData) => {
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
+                        formData.append('type', 'chat')
+                    },
                 },
-                change: (xhr, formData) => {
-                  xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
-                  formData.append('type', 'chat')
+                'emoji-toolbar': true,
+                'emoji-shortname': true,
+                toolbar: {
+                    container: ['image', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
+                        'emoji', {'header': 1}, {'header': 2}, {'list': 'ordered'}, {'list': 'bullet'}, {'color': []}],
+                    handlers: {
+                        'image': () => {
+                            QuillWatch.emit(this.quill.id)
+                        }
+                    }
                 },
-              },
-              'emoji-toolbar': true,
-              'emoji-shortname': true,
-              toolbar: {
-                container: ['image', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
-                  'emoji', {'header': 1}, {'header': 2}, {'list': 'ordered'}, {'list': 'bullet'}, {'color': []}],
-                handlers: {
-                  'image':  ()=> {
-                    QuillWatch.emit(this.quill.id)
-                  }
-                }
-              },
             }
         }
     },
@@ -442,147 +444,148 @@ export default {
 
 <style lang="scss" scoped>
 
-  .search {
-      background-color: rgb(231, 230, 229);
-      padding: 10px;
-      height: 48px;
-      width: 250px;
-  }
+.search {
+    background-color: rgb(231, 230, 229);
+    padding: 10px;
+    height: 48px;
+    width: 250px;
+}
 
-  > > > .el-drawer {
-      width: 400px !important;
+> > > .el-drawer {
+    width: 400px !important;
 
-      .el-drawer__header {
-          display: none;
-      }
+    .el-drawer__header {
+        display: none;
+    }
 
-      .crowdUser {
-          height: 50px;
-          padding: 10px 5px;
-      }
+    .crowdUser {
+        height: 50px;
+        padding: 10px 5px;
+    }
 
-      .crowdUser:hover {
-          background-color: rgb(235, 236, 237);
-      }
-  }
+    .crowdUser:hover {
+        background-color: rgb(235, 236, 237);
+    }
+}
 
-  > > > .el-divider {
-      margin-top: 8px;
-  }
-
-
-  > > > .main {
-      position: absolute;
-      top: 0;
-      left: 280px;
-      right: 0;
-      bottom: 170px;
-      padding-bottom: 5px;
-      background-color: rgb(245, 245, 245);
-  }
-
-  > > > .el-footer {
-      position: absolute;
-      left: 280px;
-      bottom: 0;
-      right: 0;
-      padding: 0 10px 0 10px;
-      height: 170px !important;
+> > > .el-divider {
+    margin-top: 8px;
+}
 
 
-      .video {
-          border: none;
-          background-color: #FFF;
-          position: absolute;
-          top: 8px;
-          left: 345px;
-      }
-  }
+> > > .main {
+    position: absolute;
+    top: 0;
+    left: 280px;
+    right: 0;
+    bottom: 170px;
+    padding-bottom: 5px;
+    background-color: rgb(245, 245, 245);
+}
 
-  > > > .quill-editor {
-      width: 100%;
+> > > .el-footer {
+    position: absolute;
+    left: 280px;
+    bottom: 0;
+    right: 0;
+    padding: 0 10px 0 10px;
+    height: 170px !important;
 
-      .ql-toolbar {
-          border: none;
-      }
 
-      .ql-container {
-          border: none;
-          height: 95px;
+    .video {
+        border: none;
+        background-color: #FFF;
+        position: absolute;
+        top: 8px;
+        left: 345px;
+    }
+}
 
-          img {
-              max-height: 150px;
-          }
-      }
+> > > .quill-editor {
+    width: 100%;
 
-      .ql-toolbar {
-          padding-left: 0 !important;
-      }
-  }
+    .ql-toolbar {
+        border: none;
+    }
 
-  > > >#emoji-palette{
-    top: -258px!important;
-    left: 0!important;
-    max-width: 350px;
+    .ql-container {
+        border: none;
+        height: 95px;
 
-    #tab-toolbar{
-        li{
-          width: 40px!important;
+        img {
+            max-height: 150px;
         }
     }
 
-    #tab-panel{
-      max-height: 180px;
-      .bem{
-        margin: 3px!important;
-      }
+    .ql-toolbar {
+        padding-left: 0 !important;
+    }
+}
+
+> > > #emoji-palette {
+    top: -258px !important;
+    left: 0 !important;
+    max-width: 350px;
+
+    #tab-toolbar {
+        li {
+            width: 40px !important;
+        }
     }
 
-  }
+    #tab-panel {
+        max-height: 180px;
 
-  > > > .video-dialog {
-      .el-dialog__header {
-          padding: 5px;
-          text-align: center;
+        .bem {
+            margin: 3px !important;
+        }
+    }
 
-          .el-dialog__headerbtn {
-              top: 12px;
-          }
-      }
+}
 
-      .el-dialog__body {
-          padding: 5px 10px;
-          position: relative;
+> > > .video-dialog {
+    .el-dialog__header {
+        padding: 5px;
+        text-align: center;
 
-          div {
-              height: 500px;
-          }
+        .el-dialog__headerbtn {
+            top: 12px;
+        }
+    }
 
-          #rtcA {
-              width: 750px;
-              height: 500px;
-          }
+    .el-dialog__body {
+        padding: 5px 10px;
+        position: relative;
 
-          #rtcB {
-              width: 350px;
-              height: 200px;
-              position: absolute;
-              top: 5px;
-              right: 10px;
-          }
+        div {
+            height: 500px;
+        }
 
-          video::-webkit-media-controls-panel {
-              display: none !important;
-          }
+        #rtcA {
+            width: 750px;
+            height: 500px;
+        }
 
-      }
-  }
+        #rtcB {
+            width: 350px;
+            height: 200px;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+        }
 
-  .voice {
-      position: absolute;
-      top: -30px;
-      left: 20px;
-      right: 20px;
-  }
+        video::-webkit-media-controls-panel {
+            display: none !important;
+        }
+
+    }
+}
+
+.voice {
+    position: absolute;
+    top: -30px;
+    left: 20px;
+    right: 20px;
+}
 
 </style>

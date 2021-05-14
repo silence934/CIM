@@ -4,7 +4,6 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
-import io.netty.handler.codec.http.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,7 @@ public class NettySocketIoConfig implements CommandLineRunner {
     @Value("${spring.cloud.consul.discovery.port}")
     private Integer port;
 
-    @Value("${server.address}")
+    @Value("${spring.cloud.consul.discovery.ip-address}")
     private String address;
 
     public static final Map<Integer, List<SocketIOClient>> CLIENT_MAP = new ConcurrentHashMap<>();
@@ -53,16 +52,12 @@ public class NettySocketIoConfig implements CommandLineRunner {
         config.setBossThreads(1);
         config.setWorkerThreads(100);
         //身份验证
-        config.setAuthorizationListener(handshakeData -> {
-            HttpHeaders httpHeaders = handshakeData.getHttpHeaders();
-            System.out.println(handshakeData.getHttpHeaders());
-            return true;
-        });
+        config.setAuthorizationListener(handshakeData -> true);
         config.setHostname(address);
         config.setPort(port);
 
         config.setKeyStorePassword("fc2998820...");
-        InputStream stream = this.getClass().getResourceAsStream("/www.nyist.xyz.jks");
+        InputStream stream = this.getClass().getResourceAsStream("/socket.nyist.xyz.jks");
         config.setKeyStore(stream);
 
         return new SocketIOServer(config);

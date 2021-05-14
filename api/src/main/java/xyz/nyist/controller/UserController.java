@@ -45,8 +45,12 @@ public class UserController {
     }
 
     @GetMapping("/select/details")
-    public Result<UserVO> getDetails(Integer id) {
-        return Result.success(UserVO.forValue(userService.getById(id)));
+    public Result<ChatSubjectVo> getDetails(Integer id) {
+        if (id > 9999) {
+            return Result.success(UserChatSubjectVo.forValue(crowdService.getById(id)));
+        } else {
+            return Result.success(UserChatSubjectVo.forValue(userService.getById(id)));
+        }
     }
 
     @PostMapping("/select/chatsInfo")
@@ -55,9 +59,9 @@ public class UserController {
         UserEntity currentUser = userContext.getCurrentUser();
 
         List<ChatSubjectVo> list = userService.getByIds(ids).stream()
-                .map(user->{
+                .map(user -> {
                     FriendEntity friend = friendService.getFriend(currentUser, user);
-                    return UserChatSubjectVo.forValue(user,friend);
+                    return UserChatSubjectVo.forValue(user, friend);
                 }).collect(Collectors.toList());
 
 

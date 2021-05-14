@@ -39,13 +39,13 @@
         <el-dialog width="530px" :close-on-click-modal="false" title="编辑群信息" :visible.sync="dialog">
             <span class="crowd_label" style="vertical-align: top">群头像</span>
             <el-upload
-                    :data="{type:'avatar'}"
-                    class="avatar-uploader"
-                    action="/api-v1/artifact/upload"
-                    :headers="{Authorization: 'Bearer ' + this.token}"
-                    :show-file-list="false"
-                    :on-success="success"
-                    :before-upload="beforeAvatarUpload">
+                :data="{type:'avatar'}"
+                class="avatar-uploader"
+                action="/api-v1/artifact/upload"
+                :headers="{Authorization: 'Bearer ' + this.token}"
+                :show-file-list="false"
+                :on-success="success"
+                :before-upload="beforeAvatarUpload">
                 <img v-if="rightCrowd.avatar" :src="rightCrowd.avatar" class="avatar" alt="">
                 <i v-else class="el-icon-plus avatar-uploader-icon"></i>
             </el-upload>
@@ -54,7 +54,8 @@
             <el-input style="width: 380px" v-model="rightCrowd.name" placeholder="请输入群名称"/>
             <br><br>
             <span class="crowd_label" style="vertical-align: top">群公告</span>
-            <el-input type="textarea" :rows="2" style="width: 380px" v-model="rightCrowd.announcement" placeholder="请输入群公告"/>
+            <el-input type="textarea" :rows="2" style="width: 380px" v-model="rightCrowd.announcement"
+                      placeholder="请输入群公告"/>
             <br><br>
             <div style="text-align: right">
                 <el-button @click="dialog=false;getCrowd()" type="info">取消</el-button>
@@ -72,7 +73,7 @@ import router from "@/router"
 
 export default {
     name: 'group',
-    components: { centerControl},
+    components: {centerControl},
     data() {
         return {
             crowdList: [],
@@ -168,7 +169,7 @@ export default {
             return isJPG && isLt3M;
         },
         success(response) {
-            this.rightCrowd.avatar = response.data.path
+            this.rightCrowd.avatar = '/proxy/api-v1/artifact' + response.data.path
             this.$message.success("保存后生效")
         },
         updateCrowdInfo() {

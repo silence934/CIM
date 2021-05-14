@@ -52,26 +52,26 @@ export default {
                 if (chat.length === 0) {
                     getDetails({id: data.from}).then(res => {
                         this.$store.dispatch("chat/addList",
-                                {
-                                    avatar: res.data.avatar,
-                                    id: data.from,
-                                    nickname: res.data.nickname,
-                                    time: data.time,
-                                    msg: data.data,
-                                    badge: 1
-                                })
+                            {
+                                avatar: res.data.avatar,
+                                id: data.from,
+                                nickname: res.data.nickname,
+                                time: data.time,
+                                msg: data.data,
+                                badge: 1
+                            })
                     })
                 } else {
                     chat = chat[0]
                     this.$store.dispatch("chat/addList",
-                            {
-                                avatar: chat.avatar,
-                                id: data.from,
-                                nickname: chat.nickname,
-                                time: data.time,
-                                msg: data.data,
-                                badge: chat.badge + 1
-                            })
+                        {
+                            avatar: chat.avatar,
+                            id: data.from,
+                            nickname: chat.nickname,
+                            time: data.time,
+                            msg: data.data,
+                            badge: chat.badge + 1
+                        })
                 }
             }
             console.log("收到消息", data)
@@ -94,25 +94,50 @@ export default {
                 return '图片'
             } else if (message.type === 'VIDEO') {
                 return '视频通话'
+            } else if (message.type === 'VOICE') {
+                return '语音消息'
             } else {
                 let a = message.data.replace(/<.*?>/ig, '')
                 return a.substring(0, 7) + (a.length > 7 ? '...' : '')
             }
         },
+        messageToChat(message) {
+            let id
+            if (message.type === 'ADD_FRIEND') {
+                id = -1
+            } else if (message.to === this.userId) {
+                id = message.from
+            } else {
+                id = message.to
+            }
+            return {id: id, type: message.type, time: message.time, msg: this.messageSwitch(message)}
+        }
     },
     mounted() {
         this.$socket.emit('loginEvent', {from: this.userId, type: "LOGIN"})
-        getUnreadMessage().then(res => {
+        getUnreadMessage().then((res) => {
             console.log("未读消息", res)
-            res.data.forEach(item => {
-                let message = {
-                    id: item.from === this.userId ? item.to : item.from,
-                    time: item.time,
-                    msg: this.messageSwitch(item),
-                    type: item.type,
-                    status: item.status
+            res.data.forEach(async (item) => {
+                let newChat = this.messageToChat(item)
+                let chat = this.chat.filter(i => i.id === newChat.id)
+                if (chat.length === 0) {
+                    if (newChat.type === 'ADD_FRIEND') {
+                        newChat.avatar = require('@/assets/bell.png')
+                        newChat.badge = 1
+                        newChat.nickname = '新朋友'
+                    } else {
+                        await getDetails({id: newChat.id}).then(res => {
+                            newChat.avatar = res.data.avatar
+                            newChat.badge = 1
+                            newChat.nickname = res.data.nickname
+                        })
+                    }
+                } else {
+                    newChat.avatar = chat[0].avatar
+                    newChat.nickname = chat[0].nickname
+                    newChat.badge = chat[0].badge + 1
                 }
-                this.$store.dispatch("chat/addList", message)
+                await this.$store.dispatch('chat/addList', newChat)
             })
         })
     }

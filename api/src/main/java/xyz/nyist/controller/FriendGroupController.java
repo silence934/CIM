@@ -57,6 +57,7 @@ public class FriendGroupController {
         Boolean accept = (Boolean) data.get("accept");
         Integer messageId = (Integer) data.get("id");
         MessageEntity message = messageService.getById(messageId);
+        message.setRead(true);
         if (accept) {
             String remark = (String) data.get("remark");
             Integer groupId = (Integer) data.get("group");

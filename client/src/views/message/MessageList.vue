@@ -30,14 +30,16 @@
             <div v-for="(item,index) in msgList"
                  :key="index"
                  class="item">
-                <span style="position: absolute;top: -10px;font: 12px Extra Small">{{item.time}}</span>
+                <span style="position: absolute;top: -10px;font: 12px Extra Small">{{ item.time }}</span>
                 <el-image v-if="item.fromUser" class="headImg" :src="item.fromUser.avatar"/>
                 <div style="position: absolute;top: 15px;left: 80px;width: 200px">
-                    <h3 v-if="item.fromUser" style="margin: 0 0 3px 0">{{item.fromUser.nickname||item.fromUser.username}}</h3>
-                    <span style="font: 13px Small">{{item.data}}</span>
+                    <h3 v-if="item.fromUser" style="margin: 0 0 3px 0">
+                        {{ item.fromUser.nickname || item.fromUser.username }}</h3>
+                    <span style="font: 13px Small">{{ item.data }}</span>
                 </div>
-                <div style="position: absolute;top: 25px;left: 300px;" v-if="(item.status!=='ACCEPT'&&item.status!=='REJECT')">
-                    <el-button @click="message=item;friend={};dialog=true" size="mini" type="primary">同意</el-button>
+                <div style="position: absolute;top: 25px;left: 300px;"
+                     v-if="(item.status!=='ACCEPT'&&item.status!=='REJECT')">
+                    <el-button @click="consent(item)" size="mini" type="primary">同意</el-button>
                     <el-button @click="message=item;addFriend(false)" size="mini" type="info">拒绝</el-button>
                 </div>
                 <div style="position: absolute;top: 25px;left: 300px;" v-else>
@@ -76,26 +78,27 @@ import {addFriend, getGroup} from "@/api/user";
 
 export default {
     name: "MessageList",
-    components: {CharList, Voice, VideoAndVoice, centerControl,AudioPlayer},
+    components: {CharList, Voice, VideoAndVoice, centerControl, AudioPlayer},
     computed: {
         ...mapGetters([
             'userId', 'chat', 'token', 'name', 'avatar', 'onlineUser'
         ]),
     },
-    props:{
-        nowActive:{
-            type:Object
+    props: {
+        nowActive: {
+            type: Object
         },
-        msgList:{
-            type:Array,
-            default:[{data: '',
+        msgList: {
+            type: Array,
+            default: [{
+                data: '',
                 from: 0,
                 isRead: false,
                 status: '',
                 time: '',
                 to: 0,
                 type: '',
-                fromUser:{
+                fromUser: {
                     avatar: '',
                     id: 0,
                     mail: '',
@@ -109,9 +112,9 @@ export default {
     },
     sockets: {
         getChat(messageList) {
-            if (messageList.content.length>0&&messageList.content[0].type!=='ADD_FRIEND'){
+            if (messageList.content.length > 0 && messageList.content[0].type !== 'ADD_FRIEND') {
                 messageList = messageList.content.reverse()
-            }else {
+            } else {
                 messageList = messageList.content
             }
             //获取聊天记录有四种情况  当前是否已存在消息(判断是第一次获取消息还是上拉获取消息)  获取的是否有消息  组合
@@ -122,11 +125,7 @@ export default {
                     this.nowActive.time = moment().format('YYYY-MM-DD HH:mm:ss')
                 } else {
                     this.msgList.unshift(...messageList)
-                    this.$nextTick(() => {
-                        if (this.nowActive.id&&this.nowActive.type!=='ADD_FRIEND'){
-                            this.scrollTop = document.getElementsByClassName('happy-scroll-content')[0].scrollHeight
-                        }
-                    })
+                    this.scrollToBottom()
                     this.nowActive.badge = 0
                     this.nowActive.msg = this.messageSwitch(messageList[messageList.length - 1])
                     this.nowActive.time = messageList[messageList.length - 1].time
@@ -141,25 +140,23 @@ export default {
                     this.noMore = true
                 } else {
                     this.msgList.unshift(...messageList)
-                    this.$nextTick(() => {
-                        this.scrollTop = 20
-                    })
+                    this.scrollToBottom()
                 }
             }
             this.$store.dispatch('chat/updateList', this.nowActive)
             this.loading = false
         }
     },
-    data(){
-        return{
+    data() {
+        return {
             noLoad: true,
             loadingMessage: false,
             noMore: false,
             scrollTop: 0,
-            b:true,
+            b: true,
             happyScrollElement: {},
             happyScrollContainer: {},
-            pageQuery:{size: 10, page: 1, t: {from: '', to: ''}},
+            pageQuery: {size: 10, page: 1, t: {from: '', to: ''}},
             /*添加好友*/
             dialog: false,
             friend: {
@@ -170,7 +167,7 @@ export default {
             message: {},
         }
     },
-    methods:{
+    methods: {
         toTop() {
             if (!this.noMore && this.noLoad) {
                 this.b = false
@@ -179,8 +176,8 @@ export default {
                 this.$socket.emit('selectChat', this.pageQuery)
             }
         },
-        messageTimeIsShow(current,last){
-            if (last){
+        messageTimeIsShow(current, last) {
+            if (last) {
                 return moment(current.time)
                     .diff(moment(last.time), 'minutes') > 1
             }
@@ -198,7 +195,7 @@ export default {
                 return a.substring(0, 7) + (a.length > 7 ? '...' : '')
             }
         },
-        getMsgList(){
+        getMsgList() {
             this.noMore = false
             this.noLoad = false
             setTimeout(() => {
@@ -210,9 +207,9 @@ export default {
             this.msgList.length = 0
             this.$socket.emit('selectChat', this.pageQuery)
         },
-        scrollToBottom(){
+        scrollToBottom() {
             this.$nextTick(() => {
-                if (this.nowActive.id&&this.nowActive.type!=='ADD_FRIEND'){
+                if (this.nowActive.id && this.nowActive.type !== 'ADD_FRIEND') {
                     this.scrollTop = document.getElementsByClassName('happy-scroll-content')[0].scrollHeight
                 }
             })
@@ -235,17 +232,22 @@ export default {
             }
             addFriend(data).then(() => {
                 this.$message.success("操作成功")
-                this.msgList.length=0
+                this.msgList.length = 0
                 this.$socket.emit('selectChat', this.pageQuery)
             })
             this.dialog = false
         },
+        consent(item) {
+            this.message = item
+            this.friend = {}
+            this.dialog = true
+        }
     },
     mounted() {
         this.pageQuery.from = this.userId
         this.happyScrollContainer = document.getElementsByClassName('happy-scroll-container')[0]
         this.happyScrollElement = document.getElementsByClassName('happy-scroll-content')[0]
-        if (this.happyScrollElement){
+        if (this.happyScrollElement) {
             elementResizeDetector().listenTo(this.happyScrollElement, (element) => {
                 let height = element.offsetHeight
                 if (height && this.b) {
@@ -259,162 +261,163 @@ export default {
 </script>
 
 <style scoped lang="scss">
-    > > > .happy-scroll-container {
-        width: 100% !important;
-        height: 100% !important;
+> > > .happy-scroll-container {
+    width: 100% !important;
+    height: 100% !important;
 
-        .happy-scroll-content {
-            width: 100%;
+    .happy-scroll-content {
+        width: 100%;
 
-            p {
-                font: 12px Extra Small;
-                color: #909399;
-                text-align: center
+        p {
+            font: 12px Extra Small;
+            color: #909399;
+            text-align: center
+        }
+    }
+
+    .item {
+        position: relative;
+        margin-bottom: 30px;
+
+        .headImg {
+            height: 38px;
+            width: 38px;
+            position: absolute;
+            top: 20px;
+            left: 0;
+        }
+
+        .time {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, 0);
+            color: #C0C4CC;
+            font: 13px Extra Small;
+        }
+
+        .message:after {
+            border: 3px solid transparent;
+            border-right: 3px solid #FFF;
+            position: absolute;
+            content: "";
+            top: 20px;
+            margin-top: -10px;
+            right: 100%;
+        }
+
+        .message {
+            display: inline-block;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            position: relative;
+            top: 28px;
+            left: 48px;
+            background-color: #FFF;
+            max-width: 50%;
+
+            img {
+                max-width: 150px;
             }
         }
 
-        .item {
-            position: relative;
-            margin-bottom: 30px;
+        .addFriend {
+            margin-top: 30px;
+            margin-left: 60px;
+            font: 12px Extra Small;
+        }
 
-            .headImg {
-                height: 38px;
-                width: 38px;
+        .ar-player {
+            width: 280px;
+            height: 30px;
+            position: relative;
+
+
+            .ar-volume {
+                display: none;
+            }
+
+            .ar-player-bar {
+                margin-left: 0;
                 position: absolute;
-                top: 20px;
                 left: 0;
             }
 
-            .time {
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translate(-50%, 0);
-                color: #C0C4CC;
-                font: 13px Extra Small;
-            }
-
-            .message:after {
-                border: 3px solid transparent;
-                border-right: 3px solid #FFF;
-                position: absolute;
-                content: "";
-                top: 20px;
-                margin-top: -10px;
-                right: 100%;
-            }
-
-            .message {
-                display: inline-block;
-                border-radius: 4px;
-                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-                padding: 10px;
-                position: relative;
-                top: 28px;
-                left: 48px;
-                background-color: #FFF;
-                max-width: 50%;
-
-                img {
-                    max-width: 150px;
-                }
-            }
-
-            .addFriend {
-                margin-top: 30px;
-                margin-left: 60px;
-                font: 12px Extra Small;
-            }
-
-            .ar-player {
-                width: 280px;
+            .ar-player-actions {
+                width: 30px;
                 height: 30px;
-                position: relative;
+                position: absolute;
+                right: 0;
 
-
-                .ar-volume {
-                    display: none;
-                }
-
-                .ar-player-bar {
-                    margin-left: 0;
-                    position: absolute;
-                    left: 0;
-                }
-
-                .ar-player-actions {
+                .ar-icon {
                     width: 30px;
                     height: 30px;
-                    position: absolute;
-                    right: 0;
-
-                    .ar-icon {
-                        width: 30px;
-                        height: 30px;
-                    }
                 }
+            }
 
-                svg {
-                    vertical-align: top;
+            svg {
+                vertical-align: top;
+            }
+        }
+
+    }
+
+    .right {
+        text-align: right;
+
+        .headImg {
+            left: auto;
+            right: 0 !important;
+        }
+
+        .message:after {
+            border-left: 3px solid rgb(158, 234, 106);
+            left: 100%;
+        }
+
+        .message {
+            text-align: left;
+            left: -43px;
+            background-color: rgb(158, 234, 106);
+        }
+
+        .addFriend {
+            margin-top: 30px;
+            margin-right: 60px;
+        }
+
+
+        .ar-player {
+            .ar-player-bar {
+                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+                .ar-player__time {
+                    color: black;
                 }
             }
 
         }
-
-        .right {
-            text-align: right;
-
-            .headImg {
-                left: auto;
-                right: 0 !important;
-            }
-
-            .message:after {
-                border-left: 3px solid rgb(158, 234, 106);
-                left: 100%;
-            }
-
-            .message {
-                text-align: left;
-                left: -43px;
-                background-color: rgb(158, 234, 106);
-            }
-
-            .addFriend {
-                margin-top: 30px;
-                margin-right: 60px;
-            }
-
-
-            .ar-player {
-                .ar-player-bar {
-                    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-
-                    .ar-player__time {
-                        color: black;
-                    }
-                }
-
-            }
-        }
-
-        .clear:after {
-            content: "";
-            clear: both;
-            display: block;
-        }
     }
 
-    .item{
-        height: 70px;
-        margin: 15px 5px 5px 10px;
-        position: relative;
+    .clear:after {
+        content: "";
+        clear: both;
+        display: block;
     }
-    .headImg {
-        width: 50px;
-        height: 50px;
-        margin-top: 8px;
-        margin-left: 5px;
-        border-radius: 5px;
-    }
+}
+
+.item {
+    min-height: 70px;
+    margin: 15px 5px 5px 10px;
+    position: relative;
+}
+
+.headImg {
+    width: 50px;
+    height: 50px;
+    margin-top: 8px;
+    margin-left: 5px;
+    border-radius: 5px;
+}
 </style>

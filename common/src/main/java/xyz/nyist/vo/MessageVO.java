@@ -24,6 +24,9 @@ import java.util.Optional;
 @Data
 @Builder
 public class MessageVO {
+
+    private Integer id;
+
     private Integer from;
 
     private Integer to;
@@ -48,8 +51,9 @@ public class MessageVO {
 
     private Boolean isRead;
 
-    public static MessageVO forValue(MessageEntity message){
-        return Optional.ofNullable(message).map(m->MessageVO.builder()
+    public static MessageVO forValue(MessageEntity message) {
+        return Optional.ofNullable(message).map(m -> MessageVO.builder()
+                .id(m.getId())
                 .from(m.getFrom())
                 .to(m.getTo())
                 .data(m.getData())
@@ -61,8 +65,9 @@ public class MessageVO {
                 .build()).orElse(null);
     }
 
-    public static MessageVO forValue(MessageEntity message, UserEntity from,UserEntity to){
+    public static MessageVO forValue(MessageEntity message, UserEntity from, UserEntity to) {
         MessageVO messageVO = MessageVO.builder()
+                .id(message.getId())
                 .from(message.getFrom())
                 .to(message.getTo())
                 .data(message.getData())
@@ -72,10 +77,10 @@ public class MessageVO {
                 .time(message.getTime())
                 .isRead(message.isRead())
                 .build();
-        if (from!=null){
+        if (from != null) {
             messageVO.setFromUser(UserVO.forValue(from));
         }
-        if (to!=null){
+        if (to != null) {
             messageVO.setFromUser(UserVO.forValue(to));
         }
         return messageVO;

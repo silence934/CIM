@@ -1,6 +1,3 @@
-server:
-  address: www.nyist.xyz
-
 spring:
   application:
     name: cim-api
@@ -12,8 +9,7 @@ spring:
         service-name: ${spring.application.name}
         prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
         healthCheckInterval: 5s     #健康检查频率
-        port: ${server.port}        #注册服务所在端口
-        ip-address: www.nyist.xyz
+        ip-address: api.nyist.xyz
   rabbitmq:
     port: 5672
     host: rabbitmq.nyist.com

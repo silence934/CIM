@@ -1,6 +1,3 @@
-server:
-  address: www.nyist.xyz
-
 spring:
   application:
     name: cim-mail

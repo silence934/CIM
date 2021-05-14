@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import xyz.nyist.constant.MessageType;
 
 import javax.persistence.Column;
 import java.time.LocalDateTime;
@@ -23,6 +24,8 @@ public class TagMessageDTO {
 
     Integer to;
     
+    MessageType type;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
