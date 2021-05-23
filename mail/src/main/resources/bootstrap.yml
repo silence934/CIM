@@ -27,6 +27,14 @@ spring:
         service-name: ${spring.application.name}
         prefer-ip-address: true     #不写这个配置，在docker下的consul里面健康检查会失败
         healthCheckInterval: 5s     #健康检查频率
+    stream:
+      bindings:
+        #springCloudBus topic是默认值可以不配,对应的input output
+        #分别是springCloudBusInput,springCloudBusOutput,需要对bus stream定制的话可以配置这两个channel
+        springCloudBusInput:
+          destination: springCloudBus
+          #可以指定消费组，避免每次生成随机group
+          group: cloud-bus-testgroup:${spring.application.name}
   rabbitmq:
     port: 5672
     host: rabbitmq.nyist.com
