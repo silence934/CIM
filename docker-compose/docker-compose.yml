@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+    
+    api:
+        image: cim-api
+        container_name: cim-api
+        ports:
+          - "8000:8000"
+        #network_mode: "host"
+        environment:
+          - server.port=8000
+          - server.address=
+          - spring.cloud.consul.discovery.ip-address=8.140.33.207
+        extra_hosts:
+          - "gateway.nyist.xyz:101.200.91.52"
+          - "consul.nyist.com:101.200.91.52"
+          - "mysql.nyist.com:172.25.239.210"
+          - "redis.nyist.com:172.25.239.210"
+          - "rabbitmq.nyist.com:172.25.239.210"
+
+    auth:
+        image: cim-auth
+        container_name: cim-auth
+        ports:
+          - "8015:8015"
+        #network_mode: "host"
+        environment:
+          - server.port=8015
+          - server.address=
+          - spring.cloud.consul.discovery.ip-address=8.140.33.207
+        extra_hosts:
+          - "gateway.nyist.xyz:101.200.91.52"
+          - "consul.nyist.com:101.200.91.52"
+          - "mysql.nyist.com:172.25.239.210"
+          - "redis.nyist.com:172.25.239.210"
+          - "rabbitmq.nyist.com:172.25.239.210"
+          
+    mail:
+        image: cim-mail
+        container_name: cim-mail
+        ports:
+          - "8030:8030"
+        #network_mode: "host"
+        environment:
+          - server.port=8030
+          - server.address=
+          - spring.cloud.consul.discovery.ip-address=8.140.33.207
+        extra_hosts: 
+          - "consul.nyist.com:101.200.91.52"
+          - "mysql.nyist.com:172.25.239.210"
+          - "redis.nyist.com:172.25.239.210"
+          - "rabbitmq.nyist.com:172.25.239.210"
+          
+           

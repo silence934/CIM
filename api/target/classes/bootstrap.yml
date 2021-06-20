@@ -2,6 +2,7 @@ spring:
   application:
     name: cim-api
   cloud:
+
     consul:
       host: consul.nyist.com  #consul的IP（可以改成自己电脑ip）
       port: 8500       #consul启动端口默认8500

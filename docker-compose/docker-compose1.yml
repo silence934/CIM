@@ -1,0 +1,72 @@
+version: "3"
+
+services:
+    gateway:
+        image: cim-gateway
+        container_name: cim-gateway
+        ports:
+          - "8011:8011"
+        #network_mode: "host"
+        environment:
+          - server.port=8011
+          - spring.cloud.consul.discovery.ip-address=gateway.nyist.xyz
+        extra_hosts:
+          - "gateway.nyist.xyz:172.28.138.196"
+          - "consul.nyist.com:172.28.138.196"
+          - "mysql.nyist.com:8.140.33.207"
+          - "redis.nyist.com:8.140.33.207"
+          - "rabbitmq.nyist.com:8.140.33.207"      
+    
+    fileServer:
+        image: cim-file-server
+        container_name: cim-file-server
+        ports:
+          - "8020:8020"
+        #network_mode: "host"
+        environment:
+          - server.port=8020
+          - spring.cloud.consul.discovery.ip-address=101.200.91.52
+          - file-path=/tmp/cim
+        extra_hosts:
+          - "consul.nyist.com:172.28.138.196"
+          - "mysql.nyist.com:8.140.33.207"
+          - "redis.nyist.com:8.140.33.207"
+          - "rabbitmq.nyist.com:8.140.33.207"     
+        volumes:
+          - "./data:/tmp/cim"     
+    
+    socket-9000:
+        image: cim-socket
+        container_name: cim-socket-9000
+        ports:
+          - "9000:9000"
+          - "9001:9001"
+        network_mode: "host"
+        environment:
+          - server.port=9000
+          - spring.cloud.consul.discovery.port=9001
+          - spring.cloud.consul.discovery.ip-address=socket.nyist.xyz
+        extra_hosts:
+          - "socket.nyist.xyz:172.28.138.196"
+          - "consul.nyist.com:172.28.138.196"
+          - "mysql.nyist.com:8.140.33.207"
+          - "redis.nyist.com:8.140.33.207"
+          - "rabbitmq.nyist.com:8.140.33.207"      
+          
+    socket-9010:
+        image: cim-socket
+        container_name: cim-socket-9010
+        ports:
+          - "9010:9010"
+          - "9011:9011"
+        network_mode: "host"
+        environment:
+          - server.port=9010
+          - spring.cloud.consul.discovery.port=9011
+          - spring.cloud.consul.discovery.ip-address=socket.nyist.xyz
+        extra_hosts:
+          - "socket.nyist.xyz:172.28.138.196"
+          - "consul.nyist.com:172.28.138.196"
+          - "mysql.nyist.com:8.140.33.207"
+          - "redis.nyist.com:8.140.33.207"
+          - "rabbitmq.nyist.com:8.140.33.207"
